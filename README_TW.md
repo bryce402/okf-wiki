@@ -8,18 +8,15 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/obsidian-wiki/"><img src="https://img.shields.io/pypi/v/obsidian-wiki?color=blue" alt="PyPI" /></a>
-  <a href="https://deepwiki.com/Ar9av/obsidian-wiki"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
-  <a href="https://github.com/ar9av/obsidian-wiki/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
-  <a href="https://x.com/_ar9av"><img src="https://img.shields.io/badge/@__ar9av-black?logo=x&logoColor=white" alt="X" /></a>
-</p>
-
-<p align="center">
   <img width="768" alt="obsidian-wiki" src="assets/hero.png" />
 </p>
 
 <p align="center">
-  <a href="https://github.com/Ar9av/obsidian-wiki/blob/main/README.md">English</a> | 繁體中文
+  <a href="https://github.com/bryce402/okf-wiki/blob/main/README.md">English</a> | 繁體中文
+</p>
+
+<p align="center">
+  <b>這是 <a href="https://github.com/Ar9av/obsidian-wiki">Ar9av/obsidian-wiki</a> 的 fork，已完整遷移到 <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md">Open Knowledge Format (OKF) v0.2</a>。</b>頁面使用 OKF 原生前置資料（<code>type</code>、<code>title</code>、<code>description</code>、<code>tags</code>、<code>generated</code>）—— 詳見 <a href="https://github.com/bryce402/okf-wiki/blob/main/docs/okf-frontmatter-spec.md">docs/okf-frontmatter-spec.md</a>。
 </p>
 
 ---
@@ -30,7 +27,7 @@
 
 **你的第二大腦；AI agent 是你讓它成長的方式。**
 
-這裡每個 skill 都是一個 markdown 檔案，任何 agent 都能讀取並執行，包括 Claude Code、Cursor、Codex、Windsurf、Gemini CLI，以及[另外十幾種](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/agents.md)。沒有 runtime、沒有 API key、不綁任何廠商。
+這裡每個 skill 都是一個 markdown 檔案，任何 agent 都能讀取並執行，包括 Claude Code、Cursor、Codex、Windsurf、Gemini CLI，以及[另外十幾種](https://github.com/bryce402/okf-wiki/blob/main/docs/agents.md)。沒有 runtime、沒有 API key、不綁任何廠商。
 
 ## 60 秒上手
 
@@ -39,15 +36,23 @@ pip install obsidian-wiki
 obsidian-wiki setup --vault ~/brain
 ```
 
+> **備註：** PyPI 上的 `obsidian-wiki` 套件仍是上游版本。要直接從原始碼安裝這個 OKF fork：
+> ```bash
+> git clone https://github.com/bryce402/okf-wiki.git
+> cd okf-wiki
+> pip install -e .
+> obsidian-wiki setup --vault ~/brain
+> ```
+
 然後在你的 agent 裡打開任何專案，說 **「set up my wiki」**。
 
 不想碰終端機？把下面這行交給你的 agent，它會全部處理好：
 
 ```text
-https://github.com/Ar9av/obsidian-wiki — set up my wiki
+https://github.com/bryce402/okf-wiki — set up my wiki
 ```
 
-其他安裝方式（`git clone`、Skills CLI、多個 vault）請見 **[安裝說明](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/installation.md)**（英文）
+其他安裝方式（`git clone`、Skills CLI、多個 vault）請見 **[安裝說明](https://github.com/bryce402/okf-wiki/blob/main/docs/installation.md)**（英文）
 
 ## 你實際會做的事
 
@@ -84,7 +89,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 /wiki-status          # 已匯入什麼、還有什麼待處理、樞紐頁面在哪
 ```
 
-全部 39 個 skill 請見 **[Skills Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/skills.md)**（英文）
+全部 39 個 skill 請見 **[Skills Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/skills.md)**（英文）
 
 ## 看見它
 
@@ -105,7 +110,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 - **它是你的。** 就是資料夾裡的純 markdown。推到私人 repo、用 Obsidian 打開、用 grep 搜、直接刪掉都行。沒有服務、沒有鎖定，什麼都不會離開你的機器。
 - **在你原本工作的地方就能用。** 一個 `.skills/` 目錄，symlink 到你使用的每一個 agent。
 
-更多細節請見 **[Architecture](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/architecture.md)**（英文）
+更多細節請見 **[Architecture](https://github.com/bryce402/okf-wiki/blob/main/docs/architecture.md)**（英文）
 
 ## 真的有幫助嗎？
 
@@ -138,7 +143,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 
 這是個小規模測試——每格 n=2，只用了一個 38 頁的 vault——所以確切的百分比僅供參考。時間差距（3～6 倍）遠大於各次執行之間的波動；正確率的數字則建立在較少的樣本上。「裝了」那一欄有一次執行完全失敗：模型沒有使用 CLI，自己 grep，然後答錯了。
 
-完整資料、每次執行的紀錄與規模測試結果都在 [PR #175](https://github.com/Ar9av/obsidian-wiki/pull/175)。
+完整資料、每次執行的紀錄與規模測試結果都在 [PR #175](https://github.com/bryce402/okf-wiki/pull/175)。
 
 </details>
 
@@ -148,21 +153,21 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 
 | | |
 |---|---|
-| **[Installation](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/installation.md)** | pip、clone、由 agent 設定、多個 vault |
-| **[Skills Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/skills.md)** | 全部 39 個 skill 與其 slash command |
-| **[Agent Compatibility](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/agents.md)** | 完整相容性表格與各 agent 手動設定 |
-| **[CLI Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/cli.md)** | 每一個 `obsidian-wiki` 子命令 |
-| **[Configuration](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/configuration.md)** | 設定變數、QMD 語意搜尋、`_raw/` 暫存區、GitHub 同步 |
-| **[Architecture](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/architecture.md)** | 四個匯入階段、vault 結構、我們在 Karpathy 模式上加了什麼 |
-| **[Session Brain](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/session-brain.md)** | 建立在 agent session 歷史之上的主題圖譜 |
-| **[Browser Extension](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/browser-extension.md)** | 將網頁擷取進 vault，並用 vault 內容填寫網頁表單 |
-| **[Deployment](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/deployment.md)** | 以 Docker 將 vault 部署成記憶服務，讓 agent 透過 HTTP/MCP 存取 |
-| **[Contributing](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/contributing.md)** | 新增 skill、維持兩份 README 同步 |
+| **[Installation](https://github.com/bryce402/okf-wiki/blob/main/docs/installation.md)** | pip、clone、由 agent 設定、多個 vault |
+| **[Skills Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/skills.md)** | 全部 39 個 skill 與其 slash command |
+| **[Agent Compatibility](https://github.com/bryce402/okf-wiki/blob/main/docs/agents.md)** | 完整相容性表格與各 agent 手動設定 |
+| **[CLI Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/cli.md)** | 每一個 `obsidian-wiki` 子命令 |
+| **[Configuration](https://github.com/bryce402/okf-wiki/blob/main/docs/configuration.md)** | 設定變數、QMD 語意搜尋、`_raw/` 暫存區、GitHub 同步 |
+| **[Architecture](https://github.com/bryce402/okf-wiki/blob/main/docs/architecture.md)** | 四個匯入階段、vault 結構、我們在 Karpathy 模式上加了什麼 |
+| **[Session Brain](https://github.com/bryce402/okf-wiki/blob/main/docs/session-brain.md)** | 建立在 agent session 歷史之上的主題圖譜 |
+| **[Browser Extension](https://github.com/bryce402/okf-wiki/blob/main/docs/browser-extension.md)** | 將網頁擷取進 vault，並用 vault 內容填寫網頁表單 |
+| **[Deployment](https://github.com/bryce402/okf-wiki/blob/main/docs/deployment.md)** | 以 Docker 將 vault 部署成記憶服務，讓 agent 透過 HTTP/MCP 存取 |
+| **[Contributing](https://github.com/bryce402/okf-wiki/blob/main/docs/contributing.md)** | 新增 skill、維持兩份 README 同步 |
 
 ## 參與貢獻
 
-這個專案還很早期。skills 是能用的，但還有很多空間讓這個大腦變得更聰明：更好的交叉引用、更精準的去重、支撐更大的 vault、更多匯入來源。如果你有一個工作流程適合做成 skill，[歡迎送 PR](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/contributing.md)。
+這個專案還很早期。skills 是能用的，但還有很多空間讓這個大腦變得更聰明：更好的交叉引用、更精準的去重、支撐更大的 vault、更多匯入來源。如果你有一個工作流程適合做成 skill，[歡迎送 PR](https://github.com/bryce402/okf-wiki/blob/main/docs/contributing.md)。
 
 ## 授權
 
-[MIT](https://github.com/Ar9av/obsidian-wiki/blob/main/LICENSE)
+[MIT](https://github.com/bryce402/okf-wiki/blob/main/LICENSE)

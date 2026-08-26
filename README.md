@@ -8,19 +8,15 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/obsidian-wiki/"><img src="https://img.shields.io/pypi/v/obsidian-wiki?color=blue" alt="PyPI" /></a>
-  <a href="https://deepwiki.com/Ar9av/obsidian-wiki"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
-  <a href="https://github.com/ar9av/obsidian-wiki/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
-  <a href="https://x.com/_ar9av"><img src="https://img.shields.io/badge/@__ar9av-black?logo=x&logoColor=white" alt="X" /></a>
-  <a href="https://discord.gg/FH2PRX754c"><img src="https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
-</p>
-
-<p align="center">
   <img width="768" alt="obsidian-wiki" src="assets/hero.png" />
 </p>
 
 <p align="center">
-  English | <a href="https://github.com/Ar9av/obsidian-wiki/blob/main/README_TW.md">繁體中文</a>
+  English | <a href="https://github.com/bryce402/okf-wiki/blob/main/README_TW.md">繁體中文</a>
+</p>
+
+<p align="center">
+  <b>This is a fork of <a href="https://github.com/Ar9av/obsidian-wiki">Ar9av/obsidian-wiki</a> with full migration to <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md">Open Knowledge Format (OKF) v0.2</a>.</b> Pages use OKF native frontmatter (<code>type</code>, <code>title</code>, <code>description</code>, <code>tags</code>, <code>generated</code>) — see <a href="https://github.com/bryce402/okf-wiki/blob/main/docs/okf-frontmatter-spec.md">docs/okf-frontmatter-spec.md</a>.
 </p>
 
 ---
@@ -31,7 +27,7 @@ This fixes that. Point it at a folder, tell your agent what to remember, and it 
 
 **Your second brain. Your AI agent is how you grow it.**
 
-Every skill here is a markdown file that any agent — Claude Code, Cursor, Codex, Windsurf, Gemini CLI, and [a dozen more](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/agents.md) — reads and runs. No runtime, no API keys, no vendor.
+Every skill here is a markdown file that any agent — Claude Code, Cursor, Codex, Windsurf, Gemini CLI, and [a dozen more](https://github.com/bryce402/okf-wiki/blob/main/docs/agents.md) — reads and runs. No runtime, no API keys, no vendor.
 
 ## 60 seconds
 
@@ -40,15 +36,23 @@ pip install obsidian-wiki
 obsidian-wiki setup --vault ~/brain
 ```
 
+> **Note:** The PyPI package `obsidian-wiki` is still the upstream build. To install this OKF fork directly from source:
+> ```bash
+> git clone https://github.com/bryce402/okf-wiki.git
+> cd okf-wiki
+> pip install -e .
+> obsidian-wiki setup --vault ~/brain
+> ```
+
 Then open any project in your agent and say **"set up my wiki"**.
 
 Prefer not to touch a terminal? Give your agent this and it'll do the whole thing:
 
 ```text
-https://github.com/Ar9av/obsidian-wiki — set up my wiki
+https://github.com/bryce402/okf-wiki — set up my wiki
 ```
 
-Other paths — `git clone`, Skills CLI, multiple vaults → **[Installation](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/installation.md)**
+Other paths — `git clone`, Skills CLI, multiple vaults → **[Installation](https://github.com/bryce402/okf-wiki/blob/main/docs/installation.md)**
 
 ## What you actually do
 
@@ -85,7 +89,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 /wiki-status          # what's ingested, what's pending, where the hubs are
 ```
 
-All 39 skills → **[Skills Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/skills.md)**
+All 39 skills → **[Skills Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/skills.md)**
 
 ## See it
 
@@ -106,7 +110,7 @@ Or export the whole graph to `graph.json`, GraphML (Gephi/yEd), Neo4j Cypher, Po
 - **It's yours.** Plain markdown in a folder. Push it to a private repo, open it in Obsidian, grep it, delete it. No service, no lock-in, nothing leaves your machine.
 - **Works where you already work.** One `.skills/` directory, symlinked into every agent you use.
 
-More → **[Architecture](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/architecture.md)**
+More → **[Architecture](https://github.com/bryce402/okf-wiki/blob/main/docs/architecture.md)**
 
 ## Does it actually help?
 
@@ -155,7 +159,7 @@ accuracy figures rest on fewer samples. One run in the "with" column failed outr
 model ignored the CLI, grepped by hand, and got it wrong.
 
 Full data, per-run logs and the scaling measurements are in
-[PR #175](https://github.com/Ar9av/obsidian-wiki/pull/175).
+[PR #175](https://github.com/bryce402/okf-wiki/pull/175).
 
 </details>
 
@@ -163,21 +167,21 @@ Full data, per-run logs and the scaling measurements are in
 
 | | |
 |---|---|
-| **[Installation](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/installation.md)** | pip, clone, agent-driven setup, multiple vaults |
-| **[Skills Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/skills.md)** | All 39 skills and their slash commands |
-| **[Agent Compatibility](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/agents.md)** | The full matrix + per-agent manual setup |
-| **[CLI Reference](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/cli.md)** | Every `obsidian-wiki` subcommand |
-| **[Configuration](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/configuration.md)** | Config vars, QMD semantic search, `_raw/` staging, GitHub sync |
-| **[Architecture](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/architecture.md)** | The four ingest stages, vault structure, what we added to Karpathy's pattern |
-| **[Session Brain](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/session-brain.md)** | Topic graph over your agent session history |
-| **[Browser Extension](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/browser-extension.md)** | Capture pages into the vault, and fill web forms from it |
-| **[Deployment](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/deployment.md)** | Run a vault as a Dockerized memory service agents reach over HTTP/MCP |
-| **[Contributing](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/contributing.md)** | Adding skills, keeping the READMEs in sync |
+| **[Installation](https://github.com/bryce402/okf-wiki/blob/main/docs/installation.md)** | pip, clone, agent-driven setup, multiple vaults |
+| **[Skills Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/skills.md)** | All 39 skills and their slash commands |
+| **[Agent Compatibility](https://github.com/bryce402/okf-wiki/blob/main/docs/agents.md)** | The full matrix + per-agent manual setup |
+| **[CLI Reference](https://github.com/bryce402/okf-wiki/blob/main/docs/cli.md)** | Every `obsidian-wiki` subcommand |
+| **[Configuration](https://github.com/bryce402/okf-wiki/blob/main/docs/configuration.md)** | Config vars, QMD semantic search, `_raw/` staging, GitHub sync |
+| **[Architecture](https://github.com/bryce402/okf-wiki/blob/main/docs/architecture.md)** | The four ingest stages, vault structure, what we added to Karpathy's pattern |
+| **[Session Brain](https://github.com/bryce402/okf-wiki/blob/main/docs/session-brain.md)** | Topic graph over your agent session history |
+| **[Browser Extension](https://github.com/bryce402/okf-wiki/blob/main/docs/browser-extension.md)** | Capture pages into the vault, and fill web forms from it |
+| **[Deployment](https://github.com/bryce402/okf-wiki/blob/main/docs/deployment.md)** | Run a vault as a Dockerized memory service agents reach over HTTP/MCP |
+| **[Contributing](https://github.com/bryce402/okf-wiki/blob/main/docs/contributing.md)** | Adding skills, keeping the READMEs in sync |
 
 ## Contributing
 
-This is early. The skills work, but there's room to make the brain smarter — better cross-referencing, sharper deduplication, bigger vaults, new ingest sources. If you have a workflow that could be a skill, [PRs are welcome](https://github.com/Ar9av/obsidian-wiki/blob/main/docs/contributing.md).
+This is early. The skills work, but there's room to make the brain smarter — better cross-referencing, sharper deduplication, bigger vaults, new ingest sources. If you have a workflow that could be a skill, [PRs are welcome](https://github.com/bryce402/okf-wiki/blob/main/docs/contributing.md).
 
 ## License
 
-[MIT](https://github.com/Ar9av/obsidian-wiki/blob/main/LICENSE)
+[MIT](https://github.com/bryce402/okf-wiki/blob/main/LICENSE)
