@@ -89,11 +89,13 @@ Each project directory has an overview page structured like this:
 ```markdown
 ---
 title: My Project
-category: project
+type: Project              # OKF v0.2 required
 tags: [ai, web, backend]
 source_path: ~/.claude/projects/-Users-name-Documents-projects-my-project
 created: 2026-03-01T00:00:00Z
-updated: 2026-04-06T00:00:00Z
+generated:
+  by: "wiki-ingest/hermes"
+  at: 2026-04-06T00:00:00Z
 ---
 
 # My Project
@@ -161,15 +163,15 @@ When creating a new wiki page, use this structure:
 
 ```markdown
 ---
+type: Concept              # OKF v0.2 required — Concept|Entity|Skill|Reference|Synthesis|Project|Journal
 title: Page Title
-category: concepts
 tags: [ml, architecture]
 aliases: [alternate name]
 relationships:
   - target: "[[concepts/related-concept]]"
     type: extends
-sources: [papers/attention.pdf]
-summary: One or two sentences, ≤200 chars, so a reader (or another skill) can preview this page without opening it.
+description: One or two sentences, ≤200 chars, so a reader (or another skill) can preview this page without opening it.
+sources: [papers/attention.pdf]   # OKF v0.2 structured: [{id, resource, title, ...}] or flat strings
 provenance:
   extracted: 0.72
   inferred: 0.25
@@ -178,8 +180,10 @@ base_confidence: 0.65
 lifecycle: draft
 lifecycle_changed: 2024-03-15
 tier: supporting
-created: 2024-03-15T10:30:00Z
-updated: 2024-03-15T10:30:00Z
+created: 2024-03-15T10:30:00Z     # Extension — page creation
+generated:                          # OKF v0.2 recommended — last content change
+  by: "wiki-ingest/hermes"
+  at: 2024-03-15T10:30:00Z
 ---
 
 # Page Title
@@ -213,7 +217,7 @@ Use this template only when the source is an academic paper (arXiv/conference) w
 
 ````markdown
 ---
-# ...required frontmatter, same as the generic template; category: references...
+# ...required frontmatter, same as the generic template; type: Reference...
 ---
 
 # Paper Title
@@ -421,7 +425,7 @@ The deterministic `wiki-lint` path validates `_meta/trust-ledger.json`; it does 
 
 ### Lifecycle state machine
 
-Five states. **`stale` is not a state** — it is a computed overlay: `is_stale = (today − updated) > 90 days`.
+Five states. **`stale` is not a state** — it is a computed overlay: `is_stale = (today − generated.at) > 90 days`, falling back to `timestamp` or `updated` for v0.1 pages.
 
 | State | Entered by | Notes |
 |---|---|---|
@@ -469,7 +473,7 @@ Reading the vault is the dominant cost of every read-side skill. Use the cheapes
 | Need | Primitive | Relative cost |
 |---|---|---|
 | Does a page exist? What's its title/category/tags? | Read `index.md`; `Grep` frontmatter blocks (scope with a pattern that targets `^---` blocks at file heads) | **Cheapest** |
-| 1–2 sentence preview of a page | Read the `summary:` field in its frontmatter | **Cheap** |
+| 1–2 sentence preview of a page | Read the `summary:` or `description:` field in its frontmatter | **Cheap** |
 | A specific claim or section inside a page | `Grep -A <n> -B <n> "<term>" <file>` — returns only the matching lines plus context | **Medium** |
 | Whole-page content | `Read <file>` | **Expensive** — last resort |
 | Relationships across pages | `Grep "\[\[.*?\]\]"` across the vault, or walk wikilinks from a known page | Case-by-case |
@@ -602,7 +606,7 @@ Before drafting or rewriting natural-language Markdown, resolve the global confi
 
 The effective precedence is framework invariants > current task/skill requirements > current project `AGENTS.md` > vault `AGENTS.md` > global `WRITING.md`. Framework invariants include schema, provenance, and safety; operation-specific requirements remain authoritative for the current task. Unspecified project and vault rules are inherited from less-specific layers, and more specific same-topic rules win.
 
-Writing preferences apply only to newly drafted or rewritten natural-language fields and body content. This includes natural-language title and summary values in YAML frontmatter, but preferences cannot alter YAML syntax, required keys, structure, types, or machine-generated fields. JSON, structured logs, and pass-through content remain unchanged and retain their required formats and source fidelity.
+Writing preferences apply only to newly drafted or rewritten natural-language fields and body content. This includes natural-language title, description, and summary values in YAML frontmatter, but preferences cannot alter YAML syntax, required keys, structure, types, or machine-generated fields. JSON, structured logs, and pass-through content remain unchanged and retain their required formats and source fidelity.
 
 ## Environment Variables
 
