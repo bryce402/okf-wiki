@@ -71,7 +71,7 @@ curl -X POST localhost:8080/v1/pages -H "Authorization: Bearer $WIKI_API_KEY" \
 ```
 
 Writes land at `<category>/<slug-of-title>.md` with the six required frontmatter keys plus `summary`,
-and append a line to `log.md`. `created:` is preserved across updates. Use `category: "_raw"` for a
+and append a line to `log.md`. `created:` is preserved across updates. Use `type: Concept` for a
 rough capture you intend to promote with `wiki-ingest` later — the same role `_raw/` plays for the
 `wiki-capture` skill.
 

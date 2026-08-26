@@ -48,7 +48,7 @@ def test_write_then_search_and_read_round_trips(client, tmp_path):
     }).json()
     assert written["path"] == "concepts/vector-clocks.md"
     on_disk = (tmp_path / written["path"]).read_text()
-    assert "title: Vector Clocks" in on_disk and "updated:" in on_disk
+    assert "title: Vector Clocks" in on_disk and "type: Concept" in on_disk
     assert "vector-clocks.md" in (tmp_path / "log.md").read_text()
 
     hits = client.get("/v1/search", params={"q": "vector clocks"}).json()

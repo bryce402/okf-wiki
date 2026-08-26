@@ -422,7 +422,7 @@ relationships:
     type: contradicts
 ```
 
-**Write a `summary:` frontmatter field** on every new page (1–2 sentences, ≤200 characters) answering "what is this page about?" for a reader who hasn't opened it. When updating an existing page whose meaning has shifted, rewrite the summary to match the new content. This field is what `wiki-query`'s cheap retrieval path reads — a missing or stale summary forces expensive full-page reads.
+**Write a `description:` frontmatter field** on every new page (1–2 sentences, ≤200 characters) answering "what is this page about?" for a reader who hasn't opened it. When updating an existing page whose meaning has shifted, rewrite the summary to match the new content. This field is what `wiki-query`'s cheap retrieval path reads — a missing or stale summary forces expensive full-page reads.
 
 **Add confidence and lifecycle fields** to every new page's frontmatter:
 
@@ -492,7 +492,9 @@ hot.md template (use if the file doesn't exist):
 ```markdown
 ---
 title: Hot Cache
-updated: TIMESTAMP
+generated:
+  by: "wiki-ingest/hermes"
+  at: TIMESTAMP
 ---
 ## Recent Activity
 ## Active Threads
@@ -552,7 +554,7 @@ After ingesting, verify:
 - [ ] `log.md` has the ingest entry
 - [ ] Source attribution is present for every new claim
 - [ ] Inferred and ambiguous claims are marked with `^[inferred]` / `^[ambiguous]`; `provenance:` frontmatter block is present on new and updated pages
-- [ ] Every new/updated page has a `summary:` frontmatter field (1–2 sentences, ≤200 chars)
+- [ ] Every new/updated page has a `description:` frontmatter field (1–2 sentences, ≤200 chars)
 - [ ] `relationships:` block is present on pages where source text made typed connections clear; all entries use an allowed type from `llm-wiki/SKILL.md`
 - [ ] If `QMD_WIKI_COLLECTION` is set and the QMD CLI is available, `qmd update` has run after writing pages
 - [ ] If QMD reports missing vectors or embeddings may be stale, `qmd embed` has run

@@ -138,10 +138,10 @@ Every page needs YAML frontmatter:
 ---
 title: >-
     Page Title
-category: concepts
+type: Concept
 tags: [tag1, tag2]
 sources: [projects/<project-name>]
-summary: >-
+description: >-
     One or two sentences (≤200 chars) describing what this page covers.
 provenance:
   extracted: 0.6
@@ -151,11 +151,13 @@ base_confidence: 0.59
 lifecycle: draft
 lifecycle_changed: TIMESTAMP_DATE
 created: TIMESTAMP
-updated: TIMESTAMP
+generated:
+  by: "wiki-update/hermes"
+  at: TIMESTAMP
 ---
 
-Use folded scalar syntax (summary: >-) for title and summary to keep frontmatter parser-safe across punctuation (:, #, quotes) without escaping rules.
-Keep the title and summary contents indented by two spaces under summary: >-.
+Use folded scalar syntax (summary: >-) for title and description to keep frontmatter parser-safe across punctuation (:, #, quotes) without escaping rules.
+Keep the title and description contents indented by two spaces under summary: >-.
 
 # Page Title
 
@@ -165,7 +167,7 @@ Keep the title and summary contents indented by two spaces under summary: >-.
 Use [[wikilinks]] to connect to other pages.
 ```
 
-**Write a `summary:` frontmatter field** on every new/updated page (1–2 sentences, ≤200 chars), using `>-` folded style. For project sync, a good summary answers "what does this page tell me about the project I wouldn't guess from its title?" This field powers cheap retrieval by `wiki-query`.
+**Write a `description:` frontmatter field** on every new/updated page (1–2 sentences, ≤200 chars), using `>-` folded style. For project sync, a good description answers "what does this page tell me about the project I wouldn't guess from its title?" This field powers cheap retrieval by `wiki-query`.
 
 **Apply provenance markers** per `llm-wiki` (Provenance Markers section). For project sync specifically:
 

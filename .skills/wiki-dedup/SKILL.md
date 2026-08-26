@@ -43,9 +43,9 @@ For each remaining page, extract from frontmatter:
 - `title` — frontmatter `title` field
 - `aliases` — frontmatter `aliases` list (may be absent)
 - `tags` — frontmatter `tags` list
-- `category` — directory prefix
+- `type` — directory prefix
 
-Build a lookup table: `node_id → {title, aliases, tags, category, summary}`.
+Build a lookup table: `node_id → {title, aliases, tags, type, description}`.
 
 ## Step 2: Detect Candidate Pairs
 
@@ -70,7 +70,7 @@ You don't need exact arithmetic — make a confident judgement about degree of s
 
 | Signal | Points |
 |---|---|
-| Same `category` directory | +0.10 |
+| Same `type` directory | +0.10 |
 | Tag overlap ≥ 3 shared tags | +0.15 |
 | Tag overlap ≥ 2 shared tags | +0.05 |
 | Same first tag (dominant tag) | +0.05 |
@@ -210,8 +210,8 @@ Read both pages. Update the canonical page:
 - **`sources:`** — merge both source lists (deduplicate)
 - **`relationships:`** — merge both relationship lists (deduplicate by target, prefer typed entries over untyped)
 - **`base_confidence`** — recompute using the union of sources and the formula from `llm-wiki/SKILL.md`
-- **`updated`** — set to now
-- **`summary:`** — rewrite to cover the merged scope if the secondary page added new ground
+- **\`generated\`** — set to now
+- **`description:`** — rewrite to cover the merged scope if the secondary page added new ground
 - **Body content** — merge unique sections and bullets from the secondary page. Do not blindly append — integrate the content. Avoid duplicating claims already present in the canonical page. Use `^[inferred]` markers where synthesis is needed.
 - **`provenance:`** — recompute after merging
 
@@ -222,10 +222,10 @@ Read both pages. Update the canonical page:
 title: <secondary page title>
 redirects_to: "[[<canonical node_id>]]"
 aliases: [<secondary aliases>]
-category: <secondary category>
+type: <secondary category>
 tags: []
 created: <secondary original created>
-updated: <ISO timestamp now>
+generated: <ISO timestamp now>
 ---
 
 This page has been merged into [[<canonical page title>]].

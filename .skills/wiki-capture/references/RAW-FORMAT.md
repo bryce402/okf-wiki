@@ -8,11 +8,12 @@ These files are designed to be promoted by `/wiki-ingest`.
 ```yaml
 ---
 title: "<Descriptive cluster title>"
-category: skills
+type: Skill        # OKF v0.2 required — or Concept|Entity|Reference|Synthesis|Journal
 tags:
   - topic/<primary-tech>
   - <1-3 additional domain tags from vault taxonomy>
-summary: "<1–2 sentences, ≤200 chars — what is this finding about?>"
+summary: "<1–2 sentences, ≤200 chars — what is this finding about?>"   # Legacy alias
+description: "<1–2 sentences, ≤200 chars — what is this finding about?>"  # OKF v0.2 recommended
 tier: supporting
 related: []
 extends: null

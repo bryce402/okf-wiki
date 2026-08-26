@@ -476,7 +476,9 @@ def scaffold_vault(vault_path: Path) -> bool:
         hot_md.write_text(
             "---\n"
             "title: Hot Cache\n"
-            f"updated: {timestamp}\n"
+            "generated:\n"
+            f"  by: \"wiki-setup/hermes\"\n"
+            f"  at: {timestamp}\n"
             "---\n\n"
             "# Hot Cache\n\n"
             "*A ~500-word semantic snapshot of recent activity. Updated after every major write operation.*\n\n"

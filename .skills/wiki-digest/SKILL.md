@@ -173,12 +173,12 @@ Most active category: **[category/]** ([N pages added or updated])
   ```yaml
   ---
   title: "Wiki Digest — [Period Label]"
-  category: journal
+  type: Journal
   tags: [digest, meta/review]
   sources: []
   created: TIMESTAMP
-  updated: TIMESTAMP
-  summary: "Weekly knowledge digest: [N new, M updated pages]. Top themes: [tag1], [tag2]."
+  generated: TIMESTAMP
+  description: "Weekly knowledge digest: [N new, M updated pages]. Top themes: [tag1], [tag2]."
   ---
   ```
 - Update `index.md` with the new entry under Journal

@@ -75,14 +75,14 @@ Every page should have: title, category, tags, sources, created, updated.
 **How to fix:**
 - Add missing fields with reasonable defaults
 
-### 3a. Missing Summary (soft warning)
+### 3a. Missing Summary or Description (soft warning)
 
-Every page *should* have a `summary:` frontmatter field — 1–2 sentences, ≤200 chars. This is what cheap retrieval (e.g. `wiki-query`'s index-only mode) reads to avoid opening page bodies.
+Every page *should* have a `summary:` or `description:` frontmatter field — 1–2 sentences, ≤200 chars. This is what cheap retrieval (e.g. `wiki-query`'s index-only mode) reads to avoid opening page bodies.
 
 **How to check:**
-- Grep frontmatter for `^summary:` across the vault
-- Flag pages without it, **but as a soft warning, not an error** — older pages predating this field are fine; the check exists to nudge ingest skills into filling it on new writes.
-- Also flag pages whose summary exceeds 200 chars.
+- Grep frontmatter for `^(summary|description):` across the vault
+- Flag pages without either, **but as a soft warning, not an error** — older pages predating these fields are fine; the check exists to nudge ingest skills into filling them on new writes.
+- Also flag pages whose summary or description exceeds 200 chars.
 
 **How to fix:**
 - Re-ingest the page, or manually write a short summary (1–2 sentences of the page's content).
@@ -394,9 +394,9 @@ Report findings as a structured list:
 ### Index Issues (N found)
 - `concepts/new-page.md` exists on disk but not in index.md
 
-### Missing Summary (N found — soft)
-- `concepts/foo.md` — no `summary:` field
-- `entities/bar.md` — summary exceeds 200 chars
+### Missing Summary or Description (N found — soft)
+- `concepts/foo.md` — no `summary:` or `description:` field
+- `entities/bar.md` — summary/description exceeds 200 chars
 
 ### Provenance Issues (N found)
 - `concepts/scaling.md` — AMBIGUOUS > 15%: 22% of claims are ambiguous (re-source or move to synthesis/)
@@ -437,7 +437,7 @@ Concept pairs that co-occur frequently but have no synthesis page:
 
 Append to `log.md`:
 ```
-- [TIMESTAMP] LINT issues_found=N orphans=X broken_links=Y stale=Z contradictions=W prov_issues=P missing_summary=S fragmented_clusters=F visibility_issues=V promotion_candidates=C synthesis_gaps=G relationship_issues=R
+- [TIMESTAMP] LINT issues_found=N orphans=X broken_links=Y stale=Z contradictions=W prov_issues=P missing_summary_or_description=S fragmented_clusters=F visibility_issues=V promotion_candidates=C synthesis_gaps=G relationship_issues=R
 ```
 
 Offer to fix issues automatically or let the user decide which to address.
@@ -551,7 +551,7 @@ lifecycle: draft
 lifecycle_changed: <date>
 tier: peripheral
 created: <ISO timestamp>
-updated: <ISO timestamp>
+generated: <ISO timestamp>
 ---
 
 # Consolidation Report — <YYYY-MM-DD>

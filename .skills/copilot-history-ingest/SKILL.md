@@ -272,7 +272,7 @@ For each project with content, create or update the project overview page at `pr
 
 **Important:** Distill the _knowledge_, not the conversation. Don't write "In a session on March 15, the user asked about X." Write the knowledge itself, with the session as a source attribution.
 
-**Write a `summary:` frontmatter field** on every new/updated page — 1–2 sentences, ≤200 chars, answering "what is this page about?" for a reader who hasn't opened it. `wiki-query`'s cheap retrieval path reads this field to avoid opening page bodies.
+**Write a `description:` frontmatter field** on every new/updated page — 1–2 sentences, ≤200 chars, answering "what is this page about?" for a reader who hasn't opened it. `wiki-query`'s cheap retrieval path reads this field (or legacy `summary:`) to avoid opening page bodies.
 
 **Add confidence and lifecycle fields** to every new page's frontmatter:
 ```yaml

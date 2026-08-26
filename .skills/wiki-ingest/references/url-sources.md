@@ -93,12 +93,14 @@ The project overview stub (`<project-name>.md`) frontmatter:
 ```yaml
 ---
 title: "<Project Name>"
-category: project
+type: Project        # OKF v0.2 required
 tags: []
 sources: []
 created: "<ISO-8601 timestamp>"
-updated: "<ISO-8601 timestamp>"
-summary: "Project wiki for <project-name>. Created automatically via URL ingest."
+generated:
+  by: "wiki-ingest/hermes"
+  at: "<ISO-8601 timestamp>"
+description: "Project wiki for <project-name>. Created automatically via URL ingest."
 ---
 ```
 
@@ -135,15 +137,17 @@ The frontmatter differs slightly between modes:
 ```yaml
 ---
 title: "<page title>"
-category: references
+type: Reference        # OKF v0.2 required
 project: "<project-name>"
 tags: [<2-4 domain tags from taxonomy>]
 sources:
   - "<URL>"
 source_url: "<URL>"
 created: "<ISO-8601 timestamp>"
-updated: "<ISO-8601 timestamp>"
-summary: "<1-2 sentence description of what this page is about, ≤200 chars>"
+generated:
+  by: "wiki-ingest/hermes"
+  at: "<ISO-8601 timestamp>"
+description: "<1-2 sentence description of what this page is about, ≤200 chars>"
 stub: false
 provenance:
   extracted: 0.X
@@ -159,14 +163,16 @@ lifecycle_changed: "<ISO date today>"
 ```yaml
 ---
 title: "<page title>"
-category: misc
+type: Reference        # OKF v0.2 required
 tags: [<2-4 domain tags from taxonomy>]
 sources:
   - "<URL>"
 source_url: "<URL>"
 created: "<ISO-8601 timestamp>"
-updated: "<ISO-8601 timestamp>"
-summary: "<1-2 sentence description of what this page is about, ≤200 chars>"
+generated:
+  by: "wiki-ingest/hermes"
+  at: "<ISO-8601 timestamp>"
+description: "<1-2 sentence description of what this page is about, ≤200 chars>"
 affinity: {}
 promotion_status: misc
 stub: false
@@ -282,7 +288,7 @@ Misc mode:
 - [ ] Page written with correct frontmatter for the mode (project vs. misc)
 - [ ] `source_url` in frontmatter matches the ingested URL
 - [ ] At least 2 wikilinks to existing pages
-- [ ] `summary:` field is present and ≤200 chars
+- [ ] `description:` field is present and ≤200 chars (legacy `summary:` also accepted)
 - [ ] Provenance markers applied; `provenance:` frontmatter block present
 - [ ] In project mode: project overview updated with link to new reference
 - [ ] In misc mode: `affinity` and `promotion_status` fields present

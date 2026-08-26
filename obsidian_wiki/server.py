@@ -66,14 +66,21 @@ def read_page(path: str) -> dict[str, Any]:
 
 def write_page(
     title: str,
-    category: str,
     content: str,
+    category: str = "concepts",
     *,
     tags: list[str] | None = None,
     sources: list[str] | None = None,
     summary: str = "",
     upsert: bool = True,
 ) -> dict[str, Any]:
+    # Map old category param to OKF type
+    _CATEGORY_TO_TYPE = {
+        "concepts": "Concept", "entities": "Entity", "skills": "Skill",
+        "references": "Reference", "synthesis": "Synthesis",
+        "projects": "Project", "journal": "Journal",
+    }
+    okf_type = _CATEGORY_TO_TYPE.get(category.lower(), "Concept")
     rel = f"{_slug(category)}/{_slug(title)}.md"
     target = _resolve(rel)
     if target.exists() and not upsert:
@@ -82,18 +89,20 @@ def write_page(
     created = today
     if target.exists():
         # Preserve the original created: date across updates.
-        match = re.search(r"^created:\s*(\S+)", target.read_text(encoding="utf-8"), re.MULTILINE)
+        match = re.search(r"^created:\\s*(\\S+)", target.read_text(encoding="utf-8"), re.MULTILINE)
         created = match.group(1) if match else today
     front = "\n".join(
         [
             "---",
+            f"type: {okf_type}",
             f"title: {title}",
-            f"category: {_slug(category)}",
             "tags: [" + ", ".join(tags or []) + "]",
             "sources: [" + ", ".join(sources or []) + "]",
-            f"summary: {summary}" if summary else "summary:",
+            f"description: {summary}" if summary else "description:",
             f"created: {created}",
-            f"updated: {today}",
+            "generated:",
+            f"  by: \"wiki-server/hermes\"",
+            f"  at: {today}",
             "---",
             "",
             "",

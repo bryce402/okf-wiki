@@ -195,7 +195,7 @@ For each impacted project, create/update `projects/<name>/<name>.md`.
 - Distill knowledge, not chronology
 - Avoid "on date X we discussed..." unless date context is essential
 - Preserve session-specific decision context when it explains why an approach was chosen; do not flatten it into generic tool advice.
-- Add `summary:` frontmatter on each new/updated page (1–2 sentences, ≤ 200 chars)
+- Add `description:` frontmatter on each new/updated page (1–2 sentences, ≤200 chars; legacy `summary:` is also accepted)
 - Add confidence and lifecycle fields to every new page:
   ```yaml
   base_confidence: 0.42

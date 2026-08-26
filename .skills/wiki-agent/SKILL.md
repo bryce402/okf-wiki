@@ -192,11 +192,11 @@ For each extracted blob, determine where it belongs in the wiki:
    ```yaml
    ---
    title: <topic>
-   category: skill|concept|entity|synthesis
+   type: Skill|Concept|Entity|Synthesis
    tags: [tag1, tag2]
    sources: [<agent>://<path/to/session>]
    created: <date>
-   updated: <date>
+   generated: <date>
    confidence: high|medium|low
    lifecycle: stable|draft
    ---

@@ -170,13 +170,15 @@ Create the file at the target path with required frontmatter:
 ---
 title: >-
   <Title>
-category: <synthesis|concepts|references|journal|skills>
+type: <Synthesis|Concept|Reference|Journal|Skill>
 tags: [<2-5 domain tags from taxonomy>]
 sources:
   - conversation:<ISO-date>
 created: <ISO-8601 timestamp>
-updated: <ISO-8601 timestamp>
-summary: >-
+generated:
+  by: "wiki-capture/hermes"
+  at: <ISO-8601 timestamp>
+description: >-
   <1-2 sentences, ≤200 chars, answering "what knowledge does this page hold?">
 provenance:
   extracted: 0.X

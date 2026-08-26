@@ -68,7 +68,7 @@ Output fields:
 
 - **`answer_type`**: `direct` | `path` | `list` | `gap` | `impact` | `bridges` | `hubs` | `clusters` | `surprising` — shapes what to do next. The last five are **structural intents**: the question is about the shape of the vault, and the answer comes back fully computed in `graph` (see below) with no page reads at all.
 - **`graph`**: present only for structural intents — the computed answer. `null` otherwise.
-- **`candidates`**: top-ranked pages by title/tag/summary match + degree, with scores and summaries
+- **`candidates`**: top-ranked pages by title/tag/summary/description match + degree, with scores and summaries
 - **`should_read`**: the pages most worth opening — start here instead of speculatively reading many files
 - **`path`**: for multi-hop queries, the shortest wikilink path between the two concepts
 - **`god_nodes_relevant`**: hub pages related to your query terms — always useful context
@@ -115,11 +115,11 @@ Also decide the **mode**:
 Build a candidate set *without opening any page bodies*:
 
 - You've already read `index.md` above — use it as the first filter. It lists every page with a one-line description and tags.
-- Use `Grep` to scan page **frontmatter only** for title, tag, alias, and summary matches. A pattern like `^(title|tags|aliases|summary):` scoped to vault `.md` files is far cheaper than content grep.
+- Use `Grep` to scan page **frontmatter only** for title, tag, alias, summary, and description matches. A pattern like `^(title|tags|aliases|summary|description):` scoped to vault `.md` files is far cheaper than content grep.
 - Collect the top 5–10 candidate page paths ranked by:
   1. Exact title or alias match
   2. Tag match
-  3. Summary field contains the query term
+  3. Summary or description field contains the query term
   4. `index.md` entry contains the query term
 - **Apply tier ordering within each rank bucket:** when two candidates score equally, prefer `tier: core` over `tier: supporting` over `tier: peripheral`. Read the `tier:` frontmatter field with the same cheap grep as other fields. Pages without a `tier:` field are treated as `supporting`.
 

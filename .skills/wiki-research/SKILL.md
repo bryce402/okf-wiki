@@ -161,14 +161,16 @@ For each significant source (typically 4-8 pages total):
 ---
 title: >-
   <Source title>
-category: references
+type: Reference
 tags: [<2-4 domain tags>]
 sources:
   - "<URL>"
 source_url: "<URL>"
 created: <ISO-8601 timestamp>
-updated: <ISO-8601 timestamp>
-summary: >-
+generated:
+  by: "wiki-research/hermes"
+  at: <ISO-8601 timestamp>
+description: >-
   <1-2 sentences describing what this source covers, ≤200 chars>
 provenance:
   extracted: 0.X
@@ -202,12 +204,14 @@ The primary output: a structured synthesis of everything found.
 ---
 title: >-
   Research: <Topic>
-category: synthesis
+type: Synthesis
 tags: [<3-5 domain tags>, research]
 sources: [<list of source URLs or page paths>]
 created: <ISO-8601 timestamp>
-updated: <ISO-8601 timestamp>
-summary: >-
+generated:
+  by: "wiki-research/hermes"
+  at: <ISO-8601 timestamp>
+description: >-
   Synthesis of <N>-round research on <topic>. Covers <core findings in ≤200 chars>.
 provenance:
   extracted: 0.X

@@ -74,12 +74,12 @@ For each top candidate, create a page in `synthesis/` using this template:
 ```markdown
 ---
 title: <Concept A> × <Concept B>
-category: synthesis
+type: Synthesis
 tags: [<shared tags>, <domain tags>]
 sources: [<all pages that link to both>]
 created: TIMESTAMP
-updated: TIMESTAMP
-summary: "Cross-cutting synthesis of how <A> and <B> interact, with implications for <domain>."
+generated: TIMESTAMP
+description: "Cross-cutting synthesis of how <A> and <B> interact, with implications for <domain>."
 provenance:
   extracted: 0.2
   inferred: 0.7
@@ -161,7 +161,7 @@ Skipped (consider next time):
 
 ## Quality Checklist
 
-- [ ] Every synthesis page has a `summary:` field (≤200 chars)
+- [ ] Every synthesis page has a `description:` field (≤200 chars)
 - [ ] Every synthesis page links back to its source concepts
 - [ ] Source concept pages link forward to the synthesis page
 - [ ] No synthesis page just restates what's already on the source pages — it must add a cross-cutting insight
