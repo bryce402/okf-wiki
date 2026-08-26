@@ -59,6 +59,13 @@ __all__ = ["SKIP_DIRS", "SKIP_ROOT_FILES", "build_index", "classify_query",
            "find_path", "query", "rank_candidates"]
 
 
+# OKF v0.2 type → directory mapping (local copy, see lint.py for canonical)
+_OKF_TYPE_TO_DIR: dict[str, str] = {
+    "Concept": "concepts", "Entity": "entities", "Skill": "skills",
+    "Reference": "references", "Synthesis": "synthesis",
+    "Project": "projects", "Journal": "journal",
+}
+
 def _extract_scalar(front: str, key: str) -> str:
     """Extract a YAML scalar frontmatter value, folding block scalars (>, |).
 
@@ -128,12 +135,16 @@ def build_index(vault: Path) -> dict[str, dict]:
             if m2:
                 tags = [ln.strip().lstrip("- ") for ln in m2.group(1).splitlines() if ln.strip()]
 
-        summary = _extract_scalar(front, "summary")
+        summary = _extract_scalar(front, "summary") or _extract_scalar(front, "description")
 
         category = str(page.relative_to(vault).parent)
         m = _CATEGORY_RE.search(front)
         if m:
             category = m.group(1).strip()
+        # OKF v0.2: also accept type field for category
+        type_val = _extract_scalar(front, "type")
+        if type_val and _OKF_TYPE_TO_DIR.get(type_val):
+            category = _OKF_TYPE_TO_DIR[type_val]
 
         tier = "supporting"
         m = _TIER_RE.search(front)

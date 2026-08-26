@@ -179,8 +179,15 @@ def _page_from_path(path: Path, vault: Path) -> PageRecord:
     values = _frontmatter_values(frontmatter)
     h1 = _H1_RE.search(body)
     title = str(values.get("title", "")).strip() or (h1.group(1).strip() if h1 else path.stem)
-    summary = str(values.get("summary", "")).strip() or _first_paragraph(_without_sources(body))
-    updated = str(values.get("updated", "")).strip() or datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat()
+    # OKF v0.2: description is the preferred field, summary is deprecated alias
+    summary = str(values.get("description", "")).strip() or str(values.get("summary", "")).strip() or _first_paragraph(_without_sources(body))
+    # OKF v0.2: generated.at or timestamp supersede updated
+    raw_updated = str(values.get("updated", "")).strip()
+    if not raw_updated:
+        raw_updated = str(values.get("timestamp", "")).strip()
+    if not raw_updated and "generated" in values:
+        raw_updated = str(values.get("generated", "")).strip()
+    updated = raw_updated or datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat()
     tier = str(values.get("tier", "supporting")).strip().lower()
     return PageRecord(path.relative_to(vault).as_posix(), title, _as_tuple(values.get("aliases", ())), _as_tuple(values.get("tags", ())), summary, tier if tier in TIER_ORDER else "supporting", updated, str(values.get("lifecycle", "")).strip(), str(values.get("base_confidence", "")).strip(), body.strip())
 

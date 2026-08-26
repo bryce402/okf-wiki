@@ -17,14 +17,51 @@ from obsidian_wiki.trust import (
 )
 
 SKIP_DIRS = frozenset("_raw _archived _staging _archives _bootstrap .obsidian .git".split())
+
+# OKF v0.2 required fields. See docs/okf-frontmatter-spec.md.
 REQUIRED_FRONTMATTER = (
-    "title",
-    "category",
-    "tags",
-    "sources",
-    "created",
-    "updated",
+    "title",       # Required by our spec
+    "type",        # OKF required
+    "tags",        # Required by our spec (taxonomy)
+    "sources",     # Required by our spec (provenance)
+    "created",     # Required by our spec (extension, page creation time)
+    "generated",   # OKF v0.2 recommended — last content change {by, at}
 )
+
+# Deprecated field aliases accepted during migration (Phase 1–2).
+# Each maps old key → OKF replacement key. A page missing the OKF key but
+# having the deprecated alias passes lint with a warning.
+DEPRECATED_FIELD_ALIASES: dict[str, str] = {
+    "category": "type",
+    "updated": "generated",    # v0.1 → v0.2: updated → generated
+    "summary": "description",
+    "timestamp": "generated",  # v0.1 → v0.2: timestamp → generated
+}
+
+# OKF §4.1: extension keys preserved verbatim in round-trips.
+# These are NOT required but are known schema fields lint can validate.
+OKF_EXTENSION_KEYS = frozenset(
+    {"summary", "aliases", "relationships", "resource",
+     "base_confidence", "lifecycle", "lifecycle_changed",
+     "tier", "provenance", "category", "updated", "superseded_by",
+     "timestamp", "status", "stale_after", "verified", "description"}
+)
+
+# Allowed OKF type values (title-case) and their directory mapping.
+ALLOWED_TYPES = frozenset({
+    "Concept", "Entity", "Skill", "Reference",
+    "Synthesis", "Project", "Journal",
+})
+TYPE_TO_DIR: dict[str, str] = {
+    "Concept": "concepts",
+    "Entity": "entities",
+    "Skill": "skills",
+    "Reference": "references",
+    "Synthesis": "synthesis",
+    "Project": "projects",
+    "Journal": "journal",
+}
+
 # Introduced by the trust-ledger rollout (#28, #132). Legacy pages that predate
 # the schema are missing these by construction; enforcement is staged behind
 # lint_vault's strict_trust switch so upgrading obsidian-wiki doesn't fail-close
@@ -176,6 +213,8 @@ def _parse_page(path: Path, vault: Path) -> dict[str, Any]:
         "slug": _slug(path.stem),
         "title": values.get("title", "").strip() or path.stem,
         "summary": values.get("summary", "").strip(),
+        "description": values.get("description", "").strip(),
+        "type": values.get("type", "").strip(),
         "fields": fields,
         "links": links,
         "relationships": _parse_relationships(frontmatter),
@@ -225,14 +264,45 @@ def lint_vault(
             incoming[target] += 1
 
     missing_frontmatter = []
+    deprecated_fields_used = []
+    type_validation_errors = []
     confidence_missing_fields = []
     trust_metadata_errors = []
     for page in pages:
         if page["slug"] in RESERVED_PAGE_STEMS:
             continue
-        missing = [field for field in REQUIRED_FRONTMATTER if field not in page["fields"]]
+        # Check required OKF fields with deprecated alias fallback.
+        missing = []
+        for field in REQUIRED_FRONTMATTER:
+            if field not in page["fields"]:
+                # Is there a deprecated alias that satisfies this requirement?
+                alias_found = None
+                for alias, target in DEPRECATED_FIELD_ALIASES.items():
+                    if target == field and alias in page["fields"]:
+                        alias_found = alias
+                        break
+                if alias_found:
+                    deprecated_fields_used.append({
+                        "page": page["path"],
+                        "alias": alias_found,
+                        "okf_field": field,
+                    })
+                else:
+                    missing.append(field)
         if missing:
             missing_frontmatter.append({"page": page["path"], "missing": missing})
+
+        # Validate type value when present (either OKF or deprecated).
+        type_val = page.get("type", None)
+        if type_val is None and "category" in page.get("fields", set()):
+            # Pages using deprecated category instead of type: skip type validation.
+            pass
+        elif type_val and type_val not in ALLOWED_TYPES:
+            type_validation_errors.append({
+                "page": page["path"],
+                "type": type_val,
+                "expected": sorted(ALLOWED_TYPES),
+            })
         missing_trust = [field for field in trust_fields if field not in page["fields"]]
         if missing_trust:
             confidence_missing_fields.append({"page": page["path"], "missing": missing_trust})
@@ -244,6 +314,78 @@ def lint_vault(
             )
         except ValueError as exc:
             trust_metadata_errors.append({"page": page["path"], "issue": str(exc)})
+
+    # OKF v0.2 structural validation (generated, verified, sources)
+    okf_field_issues: list[dict[str, Any]] = []
+    for path in _iter_pages(vault):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        fmatch = _FRONTMATTER_RE.match(text)
+        if not fmatch:
+            continue
+        frontmatter = fmatch.group(1)
+        lines = frontmatter.splitlines()
+        i = 0
+        in_generated = False
+        in_verified = False
+        generated_keys: list[str] = []
+        verified_entries = 0
+        while i < len(lines):
+            line = lines[i]
+            stripped = line.lstrip()
+            indent = len(line) - len(stripped)
+            if stripped.startswith("generated:") and indent == 0:
+                in_generated = True
+                in_verified = False
+                generated_keys = []
+                i += 1
+                continue
+            if stripped.startswith("verified:") and indent == 0:
+                in_verified = True
+                in_generated = False
+                verified_entries = 0
+                i += 1
+                continue
+            # Check if we've left a nested block
+            if indent == 0 and (in_generated or in_verified):
+                # Exited block without proper structure
+                in_generated = False
+                in_verified = False
+            if in_generated:
+                if indent > 0 and ":" in stripped:
+                    k = stripped.split(":", 1)[0].strip()
+                    generated_keys.append(k)
+                i += 1
+                continue
+            if in_verified:
+                if indent > 0 and stripped.startswith("-"):
+                    verified_entries += 1
+                i += 1
+                continue
+            i += 1
+        if in_generated:
+            in_generated = False  # reset at end
+        if in_verified:
+            in_verified = False
+
+        # Validate generated structure
+        if "generated" in [l.split(":", 1)[0].strip() for l in lines if ":" in l and not l.startswith((" ", "\t"))]:
+            rel = path.relative_to(vault).as_posix()
+            if "at" not in generated_keys:
+                okf_field_issues.append({
+                    "page": rel,
+                    "field": "generated",
+                    "issue": "generated must have 'at' key (ISO timestamp)",
+                })
+
+        # Validate verified structure
+        if "verified" in [l.split(":", 1)[0].strip() for l in lines if ":" in l and not l.startswith((" ", "\t"))]:
+            rel = path.relative_to(vault).as_posix()
+            if verified_entries == 0:
+                okf_field_issues.append({
+                    "page": rel,
+                    "field": "verified",
+                    "issue": "verified must be a list of {by, at} entries",
+                })
 
     title_index: dict[str, list[str]] = defaultdict(list)
     for page in pages:
@@ -260,6 +402,7 @@ def lint_vault(
         for page in pages
         if page["slug"] not in RESERVED_PAGE_STEMS
         and ("summary" not in page["fields"] or not page["summary"])
+        and ("description" not in page["fields"] or not page["description"])
     ]
 
     orphan_pages = []
@@ -352,6 +495,9 @@ def lint_vault(
     findings = {
         "broken_links": broken_links,
         "missing_frontmatter": missing_frontmatter,
+        "deprecated_fields_used": deprecated_fields_used,
+        "type_validation_errors": type_validation_errors,
+        "okf_field_issues": okf_field_issues,
         "duplicate_titles": duplicate_titles,
         "missing_summaries": sorted(missing_summaries),
         "orphan_pages": sorted(orphan_pages),
@@ -395,13 +541,16 @@ def lint_vault(
         counts["broken_links"]
         or counts["missing_frontmatter"]
         or counts["trust_metadata_errors"]
+        or counts["type_validation_errors"]
+        or counts["okf_field_issues"]
         or trust_fails
     ):
         status = "fail"
     elif (
         any(
             counts[name]
-            for name in ("duplicate_titles", "missing_summaries", "orphan_pages", "typed_relationship_issues")
+            for name in ("duplicate_titles", "missing_summaries", "orphan_pages",
+                          "typed_relationship_issues", "deprecated_fields_used")
         )
         or trust_findings_present
     ):

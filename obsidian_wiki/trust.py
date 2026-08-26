@@ -41,16 +41,19 @@ ILLEGAL_TRANSITIONS = frozenset(
     | {("archived", nxt) for nxt in ALLOWED_LIFECYCLES - {"archived"}}
 )
 TRUST_REQUIRED_FIELD_ALLOWLIST = frozenset(
-    {"base_confidence", "lifecycle", "lifecycle_changed", "updated"}
+    {"base_confidence", "lifecycle", "lifecycle_changed", "updated", "timestamp", "generated", "status", "stale_after", "verified"}
 )
 _REQUIRED_TRUST_KEYS = ("base_confidence", "lifecycle", "updated")
 _VOLATILE_CONFIDENCE_KEYS = (
     "updated",
+    "timestamp",
     "base_confidence",
     "lifecycle",
     "lifecycle_changed",
     "lifecycle_reason",
     "superseded_by",
+    "status",
+    "stale_after",
 )
 _FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---(?:\n|$)", re.DOTALL)
 _TOP_LEVEL_FIELD_RE = re.compile(r"^([A-Za-z_][\w-]*):")
