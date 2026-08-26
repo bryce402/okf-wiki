@@ -1,9 +1,11 @@
 ---
 title: OKF Frontmatter Specification
-category: meta
+type: Meta
 tags: [okf, specification, frontmatter]
 created: 2026-08-26
-updated: 2026-08-26
+generated:
+  by: "wiki-setup/hermes"
+  at: 2026-08-26
 ---
 
 # OKF Frontmatter Specification (v0.2)

@@ -66,14 +66,15 @@ Every route below `/v1` needs `Authorization: Bearer <key>`. `/health` does not.
 ```bash
 curl -X POST localhost:8080/v1/pages -H "Authorization: Bearer $WIKI_API_KEY" \
   -H 'content-type: application/json' \
-  -d '{"title":"Merkle Tree","category":"concepts","summary":"Hash tree for cheap diffing.","content":"Each node hashes its children."}'
+  -d '{"title":"Merkle Tree","category":"concepts","description":"Hash tree for cheap diffing.","content":"Each node hashes its children."}'
 # -> {"path":"concepts/merkle-tree.md", ...}
 ```
 
-Writes land at `<category>/<slug-of-title>.md` with the six required frontmatter keys plus `summary`,
-and append a line to `log.md`. `created:` is preserved across updates. Use `type: Concept` for a
-rough capture you intend to promote with `wiki-ingest` later — the same role `_raw/` plays for the
-`wiki-capture` skill.
+Writes land at `<category>/<slug-of-title>.md` with the six required frontmatter keys plus `description`,
+and append a line to `log.md`. `created:` is preserved across updates. The server accepts a legacy
+`category` parameter but writes the page with `type:` (e.g. `type: Concept` for `category: concepts`)
+and `description:` instead of `summary:` per OKF v0.2. Use a draft page for a rough capture you intend
+to promote with `wiki-ingest` later — the same role `_raw/` plays for the `wiki-capture` skill.
 
 `POST /v1/pages` writes exactly what you send. It does not distil, dedupe, or cross-link — those are
 the agent's job, via the `wiki-capture` and `cross-linker` skills.

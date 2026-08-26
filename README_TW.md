@@ -88,7 +88,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 
 ## 看見它
 
-在 Obsidian 打開 vault，然後開啟 graph view（Cmd/Ctrl+P → 「Open graph view」）。說 **「color my graph」**，它就會依照 tag、category 或 visibility 為節點上色。
+在 Obsidian 打開 vault，然後開啟 graph view（Cmd/Ctrl+P → 「Open graph view」）。說 **「color my graph」**，它就會依照 tag、type 或 visibility 為節點上色。
 
 <p align="center">
   <img width="900" alt="obsidian-wiki graph view" src="https://github.com/user-attachments/assets/f2980840-4b5b-438a-8264-5ad1de42f483" />
@@ -101,7 +101,7 @@ obsidian-wiki sessions-query "the auth bug with the weird retry loop"
 - **它會編譯，而不是堆積。** 新知識會合併進既有頁面，矛盾會被標記出來，內容不會重複。
 - **它只讀有變動的部分。** manifest 追蹤每個匯入過的來源，所以第二次執行只處理差異，而不是重跑整個資料庫。
 - **你分得出哪些是知識、哪些是猜測。** 每個陳述都會標記為 `extracted`、`^[inferred]` 或 `^[ambiguous]`，lint 會標出開始偏向臆測的頁面。
-- **查詢成本不隨規模爆炸。** 先讀標題、tag 和 summary，需要時才打開頁面內容。20 頁或 2000 頁，成本差不多。
+- **查詢成本不隨規模爆炸。** 先讀標題、tag 和 description，需要時才打開頁面內容。20 頁或 2000 頁，成本差不多。
 - **它是你的。** 就是資料夾裡的純 markdown。推到私人 repo、用 Obsidian 打開、用 grep 搜、直接刪掉都行。沒有服務、沒有鎖定，什麼都不會離開你的機器。
 - **在你原本工作的地方就能用。** 一個 `.skills/` 目錄，symlink 到你使用的每一個 agent。
 

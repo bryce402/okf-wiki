@@ -16,7 +16,7 @@ The agent reads your source material directly — markdown, PDFs (with page rang
 
 From the raw source, the agent pulls out concepts, entities, claims, relationships, and open questions. A conversation about debugging a React hook yields a "stale closure" pattern. A research paper yields the key idea and its caveats. A work log yields decisions and their rationale. Noise gets dropped, signal gets kept.
 
-Each page also gets a 1–2 sentence `summary:` in its frontmatter at write time — later queries use this to preview pages without opening them.
+Each page also gets a 1–2 sentence `description:` in its frontmatter at write time — later queries use this to preview pages without opening them.
 
 ### 3. Merge
 

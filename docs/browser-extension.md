@@ -141,7 +141,7 @@ Two properties of retrieval decide almost all of the quality.
 token budget, `context-pack` compresses each one to roughly its opening block.
 Anything below that — a table halfway down, a detail in the last section — is
 invisible to the model even though the page was retrieved. Keep fillable facts
-in the `summary:` frontmatter and the first paragraph.
+in the `description:` frontmatter and the first paragraph.
 
 **Keep one profile page for personal details.** Something like
 `entities/<you>.md`, tagged `visibility/pii` so it stays out of public-facing
@@ -150,8 +150,9 @@ queries, whose opening paragraph states the values in prose:
 ```markdown
 ---
 title: Your Name
+type: Entity
 tags: [owner, profile, visibility/pii]
-summary: "Vault owner: <name>, email <email>, GitHub <handle>, site <url>."
+description: "Vault owner: <name>, email <email>, GitHub <handle>, site <url>."
 ---
 
 # Your Name
