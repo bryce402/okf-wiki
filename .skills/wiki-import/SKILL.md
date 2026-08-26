@@ -114,14 +114,12 @@ For each node in `nodes`:
 
 ```markdown
 ---
+type: <type from node.category>   # OKF v0.2 required
 title: <node.label>
-category: <node.category>
 tags: <node.tags as YAML list>
+description: "<node.summary>"    # OKF recommended
 sources:
   - "imported from <graph.json path>"
-<if node.summary exists>
-summary: "<node.summary>"
-</if>
 <if typed_edges[node.id] is non-empty>
 relationships:
 <for each {target, relation} in typed_edges[node.id]>
@@ -134,7 +132,9 @@ lifecycle_changed: <today YYYY-MM-DD>
 base_confidence: 0.5
 tier: supporting
 created: <ISO timestamp>
-updated: <ISO timestamp>
+generated:               # OKF v0.2 recommended
+  by: "wiki-import/hermes"
+  at: <ISO timestamp>
 ---
 
 # <node.label>
@@ -172,14 +172,15 @@ Walk the bundle directory tree. For each `.md` file that is **not** a reserved f
 
 1. Parse the YAML frontmatter. If it has no frontmatter or no non-empty `type`, increment `unparseable` and skip the file.
 2. Compute the **concept id** = the file's path relative to the bundle root, with `.md` stripped (e.g. `concepts/transformers.md` → `concepts/transformers`). The target page is `$VAULT/<concept-id>.md`.
-3. **Reverse-map frontmatter** (the inverse of the canonical mapping table in `wiki-export` Step 3.5):
+3. **Reverse-map frontmatter** (the inverse of the canonical mapping table in `wiki-export` Step 3.5 — since vaults are natively OKF v0.2, most fields map verbatim):
    - `title` ← `title`.
-   - `category` ← the preserved `category` extension key if present; **else** lower-case the directory prefix of the concept id (`concepts/…` → `concepts`); **else** derive from `type` (`Concept`→`concepts`, `Entity`→`entities`, `Skill`→`skills`, `Reference`→`references`, `Synthesis`→`synthesis`, `Project`→`projects`, `Journal`→`journal`).
+   - `type` ← `type` (verbatim).
+   - `category` ← the directory prefix of the concept id (`concepts/…` → `concepts`). The `type` field takes precedence when it maps to a known directory; fall back to lower-casing `type` (`Concept`→`concepts`, `Entity`→`entities`, …).
    - `tags` ← `tags`.
-   - `summary` ← `description`.
-   - `updated` ← `timestamp` (or now if absent).
+   - `description` ← `description` (the OKF key becomes our native field).
+   - `generated` ← `generated` (verbatim).
    - `created` ← the preserved `created` extension key if present, else now.
-   - `sources` ← the preserved `sources` extension key if present; else `["imported from OKF bundle <bundle path>"]`. If a `resource` URL is present and not already in `sources`, add it.
+   - `sources` ← the preserved `sources` extension key if present; else `["imported from OKF bundle <bundle path>"]`. If a `resource` URL is present and not already in `sources`, add it as `{id: <url>}`.
    - Carry through any other preserved extension keys verbatim (`relationships`, `lifecycle`, `tier`, `base_confidence`, …). These make the round-trip lossless.
 4. **Reverse-transform body links** — markdown links that point at `.md` paths become wikilinks (this restores both real cross-links and forward-references the exporter preserved per `wiki-export` Step 3.5):
    - `[text](../concepts/transformers.md)` or `[text](/concepts/transformers.md)` → resolve the path (relative to this file's dir, or bundle-root for `/`-absolute) to a concept id → `[[concepts/transformers]]`, or `[[concepts/transformers|text]]` when `text` differs from the target's title. The target's title comes from the bundle page when it exists; otherwise compare against the last path segment.

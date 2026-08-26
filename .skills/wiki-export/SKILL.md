@@ -368,19 +368,21 @@ Run this step **only** when the user asks for OKF / a markdown bundle (phrases l
 
 The five graph files are a *lossy* projection (graph skeleton only). An **OKF bundle is the actual page bodies**, so an export→`wiki-import` round-trip through OKF preserves full content, and the bundle drops straight into MkDocs, Notion, Hugo, GitHub's renderer, or any [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) consumer.
 
-### Canonical frontmatter mapping (obsidian-wiki ⇄ OKF)
+### Canonical frontmatter mapping (obsidian-wiki ⇄ OKF v0.2)
 
-This table is the single source of truth for the mapping; `wiki-import` references it for the reverse direction.
+Since the vault natively uses OKF v0.2 frontmatter, most fields map verbatim.
+This table documents the identity mapping and the few derivations needed:
 
-| OKF key       | ← export from           | → import to              | Notes |
-|---------------|-------------------------|--------------------------|-------|
-| `type` (required) | `category`, title-cased | `category` (lower-cased) | `concepts`→`Concept`, `entities`→`Entity`, `skills`→`Skill`, `references`→`Reference`, `synthesis`→`Synthesis`, `projects`→`Project`, `journal`→`Journal`. OKF requires `type`; consumers tolerate any string. |
-| `title`       | `title`                 | `title`                  | Verbatim. |
-| `description` | `summary`               | `summary`                | Our one-line `summary:` is exactly OKF's `description` (used in `index.md` entries). |
-| `tags`        | `tags`                  | `tags`                   | Verbatim list. `visibility/*` system tags pass through unchanged. |
-| `timestamp`   | `updated`               | `updated`                | ISO 8601 both sides. |
-| `resource`    | first `sources:` entry **iff** it is an `http(s)://` URL | — | Optional; omit when no source URL. Most pages describe abstract knowledge and have none. |
-| *(extensions)* | `category`, `sources`, `created`, `relationships`, `lifecycle`, `tier`, `base_confidence`, … | preserved verbatim | OKF §4.1 permits arbitrary keys and requires consumers to preserve them. **Writing our native keys as OKF extension frontmatter is what makes the round-trip lossless** — on import, preserved `category`/`created`/`sources` are preferred over re-deriving from `type`. |
+| OKF key (required first) | In vault | Export behavior |
+|---|---|---|
+| `type` (required) | `type` | Verbatim. |
+| `title` (required) | `title` | Verbatim. |
+| `description` | `description` | Verbatim. |
+| `tags` | `tags` | Verbatim. `visibility/*` system tags pass through unchanged. |
+| `resource` | best-guess from `sources` | If any source entry has a `resource:` URI, use the first one. Else omit. |
+| `generated` | `generated` or `updated`/`timestamp` | Prefer `generated {by, at}`. Fall back to `updated` or `timestamp` as `generated.at` with a generic actor. |
+| `sources` | `sources` | Pass through. Flat string list (`[url]`) is valid OKF (treated as `id`). |
+| *(extensions)* | `created`, `relationships`, `lifecycle`, `tier`, `base_confidence`, `provenance`, `status`, `stale_after`, `verified`, … | Preserved verbatim per OKF §4.1. **This is what makes the round-trip lossless.** |
 
 ### Steps
 
@@ -402,7 +404,7 @@ Reuse the node list from Step 1 (with any active project/visibility filters alre
    - Leave existing external `http(s)://` links and `# Citations` sections untouched.
 
 3. **Generate `index.md` files** (OKF §6 progressive disclosure; these contain no per-entry frontmatter):
-   - Bundle root `wiki-export/okf/index.md` — a `# Subdirectories` section listing each category folder: `* [<category>](<category>/index.md) - <one-line description of the category>`. This is the **only** index permitted frontmatter: add a single key `okf_version: "0.1"` (OKF §11).
+   - Bundle root `wiki-export/okf/index.md` — a `# Subdirectories` section listing each category folder: `* [<category>](<category>/index.md) - <one-line description of the category>`. This is the **only** index permitted frontmatter: add a single key `okf_version: "0.2"` (OKF §11).
    - One `index.md` per category folder listing its pages: `* [<title>](<slug>.md) - <description from the page's summary>`.
 
 4. **Copy `log.md`** from the vault root to `wiki-export/okf/log.md` as-is (OKF §7 treats the leading bold action word as convention, so the existing line-based log is conformant).

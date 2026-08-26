@@ -130,7 +130,7 @@ $OBSIDIAN_VAULT_PATH/
 
 Knowledge that's project-specific goes under `projects/`. Knowledge that's general goes in the global category directories. Both are cross-referenced with `[[wikilinks]]`.
 
-Every page carries required frontmatter: `title`, `category`, `tags`, `sources`, `created`, `updated`.
+Every page carries required frontmatter: `type`, `title`, `description`, `tags`, `sources`, `created`, `generated`.
 
 `hot.md` deserves a mention — it's a running semantic snapshot every write skill updates, so the next session picks up where the last one left off without crawling the whole vault.
 
@@ -186,9 +186,9 @@ The [original gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519
 
 ## Open Knowledge Format
 
-The vault format is structurally conformant with [OKF v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) — markdown with YAML frontmatter, category subfolders, reserved `index.md`/`log.md`.
+The vault format is natively compliant with [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) — markdown with YAML frontmatter, category subfolders, reserved `index.md`/`log.md`.
 
-`wiki-export` (OKF mode) and `wiki-import` are the bridge: they translate between native frontmatter (`title`/`category`/`tags`/`sources`/`created`/`updated` + `summary`) and OKF (`type`/`title`/`description`/`resource`/`tags`/`timestamp`), making vaults exchangeable with any OKF tool.
+`wiki-export` (OKF mode) and `wiki-import` are the bridge: they pass frontmatter through with minimal translation, making vaults exchangeable with any OKF tool.
 
 The OKF round-trip is lossless. The `graph.json` round-trip is not — it carries structure, not page bodies.
 
