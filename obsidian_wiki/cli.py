@@ -1646,7 +1646,7 @@ def cmd_trust_record(args: argparse.Namespace) -> int:
             args,
             config,
             config_source,
-            default_required_trust_fields=("base_confidence", "lifecycle", "updated"),
+            default_required_trust_fields=("base_confidence", "lifecycle", "generated"),
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -1746,7 +1746,7 @@ def cmd_trust_check(args: argparse.Namespace) -> int:
             args,
             config,
             config_source,
-            default_required_trust_fields=("base_confidence", "lifecycle", "updated"),
+            default_required_trust_fields=("base_confidence", "lifecycle", "generated"),
         )
         report = check_trust_ledger(
             vault,
@@ -2136,7 +2136,7 @@ def build_parser() -> argparse.ArgumentParser:
     lt.add_argument(
         "--required-trust-field",
         action="append",
-        choices=("base_confidence", "lifecycle", "lifecycle_changed", "updated"),
+        choices=("base_confidence", "generated", "lifecycle", "lifecycle_changed", "stale_after", "status", "timestamp", "updated", "verified"),
         help="replace default trust-field requiredness (repeatable)",
     )
     lt.add_argument(
@@ -2176,7 +2176,7 @@ def build_parser() -> argparse.ArgumentParser:
     tr.add_argument(
         "--required-trust-field",
         action="append",
-        choices=("base_confidence", "lifecycle", "lifecycle_changed", "updated"),
+        choices=("base_confidence", "generated", "lifecycle", "lifecycle_changed", "stale_after", "status", "timestamp", "updated", "verified"),
         help="replace resolved vault trust-field requiredness (repeatable)",
     )
     tr.add_argument("--schema-source", help="authority locator recorded in the result")
@@ -2199,7 +2199,7 @@ def build_parser() -> argparse.ArgumentParser:
     tc.add_argument(
         "--required-trust-field",
         action="append",
-        choices=("base_confidence", "lifecycle", "lifecycle_changed", "updated"),
+        choices=("base_confidence", "generated", "lifecycle", "lifecycle_changed", "stale_after", "status", "timestamp", "updated", "verified"),
         help="replace default trust-field requiredness (repeatable)",
     )
     tc.add_argument(

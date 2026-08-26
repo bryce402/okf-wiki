@@ -26,6 +26,7 @@ def _page(
     links: list[str] | None = None,
     include_frontmatter: bool = True,
     include_trust_fields: bool = True,
+    okf_type: str | None = "Concept",
 ) -> Path:
     path = vault / relpath
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -34,18 +35,20 @@ def _page(
         lines.extend(
             [
                 "---",
+                f"type: {okf_type}",
                 f"title: {title or path.stem}",
-                "category: concepts",
                 f"tags: {tags}",
                 f"sources: {sources}",
                 f"created: {created}",
-                f"updated: {updated}",
+                "generated:",
+                f"  by: \"test/hermes\"",
+                f"  at: {updated}",
             ]
         )
         if include_trust_fields:
             lines.extend(["base_confidence: 0.80", "lifecycle: reviewed"])
         if summary is not None:
-            lines.append(f"summary: {summary}")
+            lines.append(f"description: {summary}")
         lines.append("---")
     lines.append(f"# {title or path.stem}")
     for link in links or []:
@@ -237,18 +240,18 @@ def test_owner_schema_accepts_extensions_optional_trust_and_reports_source(tmp_p
         require_trust_ledger=False,
         allowed_lifecycles={"active", "confirmed", "stub"},
         allowed_relationship_types={item[1] for item in extensions},
-        required_trust_fields=("updated",),
+                    required_trust_fields=("generated",),
         schema_source="wiki/AGENTS.md",
     )
 
     assert report["findings"]["confidence_missing_fields"] == []
     assert report["findings"]["typed_relationship_issues"] == []
     assert report["schema"] == {
-        "source": "wiki/AGENTS.md",
-        "allowed_lifecycles": ["active", "confirmed", "stub"],
-        "allowed_relationship_types": sorted(item[1] for item in extensions),
-        "required_trust_fields": ["updated"],
-    }
+                "source": "wiki/AGENTS.md",
+                "allowed_lifecycles": ["active", "confirmed", "stub"],
+                "allowed_relationship_types": sorted(item[1] for item in extensions),
+                "required_trust_fields": ["generated"],
+            }
 
 
 def test_invalid_configured_required_trust_field_fails_closed_for_all_cli_paths(
@@ -266,7 +269,7 @@ def test_invalid_configured_required_trust_field_fails_closed_for_all_cli_paths(
     )
     expected = (
         "error: invalid OBSIDIAN_REQUIRED_TRUST_FIELDS value(s): base_confidnce; "
-        "allowed values: base_confidence, lifecycle, lifecycle_changed, updated"
+        "allowed values: base_confidence, generated, lifecycle, lifecycle_changed, stale_after, status, timestamp, updated, verified"
     )
     commands = (
         ("lint", "--json"),
@@ -300,8 +303,8 @@ def test_empty_relationship_cli_extension_cannot_hide_missing_relation_type(
     _page(vault, "concepts/beta.md", links=["alpha"])
     alpha.write_text(
         alpha.read_text().replace(
-            "summary: Short summary.",
-            'summary: Short summary.\nrelationships:\n  - type:\n    target: "[[concepts/beta]]"',
+            "description: Short summary.",
+            'description: Short summary.\nrelationships:\n  - type:\n    target: "[[concepts/beta]]"',
         )
     )
 
@@ -508,7 +511,7 @@ def test_owner_schema_still_rejects_unknown_typos(tmp_path: Path) -> None:
         require_trust_ledger=False,
         allowed_lifecycles={"active", "confirmed", "stub"},
         allowed_relationship_types={"synthesizes"},
-        required_trust_fields=("updated",),
+        required_trust_fields=("generated",),
         schema_source="wiki/AGENTS.md",
     )
 

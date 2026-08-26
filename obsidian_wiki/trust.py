@@ -43,7 +43,7 @@ ILLEGAL_TRANSITIONS = frozenset(
 TRUST_REQUIRED_FIELD_ALLOWLIST = frozenset(
     {"base_confidence", "lifecycle", "lifecycle_changed", "updated", "timestamp", "generated", "status", "stale_after", "verified"}
 )
-_REQUIRED_TRUST_KEYS = ("base_confidence", "lifecycle", "updated")
+_REQUIRED_TRUST_KEYS = ("base_confidence", "lifecycle", "generated")
 _VOLATILE_CONFIDENCE_KEYS = (
     "updated",
     "timestamp",
@@ -55,6 +55,10 @@ _VOLATILE_CONFIDENCE_KEYS = (
     "status",
     "stale_after",
 )
+# OKF v0.2: generated/verified are object-valued trust fields.
+# They are NOT in _VOLATILE_CONFIDENCE_KEYS because that set is checked for
+# "must be a scalar" semantics; instead they get their own object validation
+# below (see the "if 'generated' in records" block).
 _FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---(?:\n|$)", re.DOTALL)
 _TOP_LEVEL_FIELD_RE = re.compile(r"^([A-Za-z_][\w-]*):")
 
@@ -179,6 +183,33 @@ def _trust_metadata(
     if "updated" in records:
         updated = _frontmatter_scalar(records["updated"][0][0])
         _validate_updated(updated)
+
+    if "generated" in records:
+        # OKF v0.2: generated is a {by, at} object.
+        gen_raw, gen_children = records["generated"][0]
+        gen_scalar = _frontmatter_scalar(gen_raw)
+        # generated: (without value) is acceptable, children hold the actual data
+        if gen_scalar and gen_scalar not in {">", ">-", "|", "|-"} and not gen_children:
+            raise ValueError("generated must be an object with at/by keys")
+        # Each child line must be a "key: scalar" pair, not a nested object —
+        # so reject any line that itself has indented children (nested YAML).
+        for child in gen_children:
+            stripped = child.strip()
+            if not stripped:
+                continue
+            if not stripped.startswith(("by:", "at:")):
+                raise ValueError("generated must be an object with at/by keys")
+            value = stripped.split(":", 1)[1].strip().strip("'\"")
+            # at: must be a scalar, not a block indicator followed by nested content
+            if not value or value in {">", ">-", "|", "|-"}:
+                raise ValueError("generated.at must be a scalar")
+        # Validate at as a timestamp
+        for child in gen_children:
+            stripped = child.strip()
+            if stripped.startswith("at:"):
+                at_value = stripped.split(":", 1)[1].strip().strip("'\"")
+                _validate_updated(at_value)
+                break
 
     confidence: float | None = None
     if "base_confidence" in records:

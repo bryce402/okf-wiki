@@ -15,12 +15,14 @@ def _page(vault: Path, name: str, *, title: str, summary: str, links: list[str] 
     lines = [
         "---",
         f"title: {title}",
-        "category: concepts",
+        "type: Concept",
         "tags: [test]",
         "sources: [manual]",
         "created: 2026-07-01",
-        "updated: 2026-07-01",
-        f"summary: {summary}",
+        "generated:",
+        "  by: \"test/hermes\"",
+        "  at: 2026-07-01",
+        f"description: {summary}",
         "---",
         f"# {title}",
     ]

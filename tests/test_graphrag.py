@@ -34,11 +34,11 @@ def _page(vault: Path, name: str, *, title: str = "", summary: str = "",
           tier: str = "supporting", category: str = "concepts") -> Path:
     lines = ["---", f"title: {title or name}"]
     if summary:
-        lines.append(f"summary: {summary}")
+        lines.append(f"description: {summary}")
     if tags:
         lines.append(f"tags: [{', '.join(tags)}]")
     lines.append(f"tier: {tier}")
-    lines.append(f"category: {category}")
+    lines.append("type: Concept")
     lines.append("---")
     lines.append(f"# {title or name}")
     for lnk in (links or []):
@@ -116,10 +116,10 @@ class TestBuildIndex:
             "---\n"
             "title: >-\n"
             "  Folded Title\n"
-            "summary: >-\n"
+            "description: >-\n"
             "  Some text that wraps\n"
             "  onto a second line.\n"
-            "category: concepts\n"
+            "type: Concept\n"
             "---\n"
             "# Folded\n"
         )
@@ -131,9 +131,9 @@ class TestBuildIndex:
         (vault / "literal.md").write_text(
             "---\n"
             "title: Literal\n"
-            "summary: |-\n"
+            "description: |-\n"
             "  Literal block text.\n"
-            "category: concepts\n"
+            "type: Concept\n"
             "---\n"
             "# Literal\n"
         )

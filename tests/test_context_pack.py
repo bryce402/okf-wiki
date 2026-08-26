@@ -39,9 +39,10 @@ def test_load_pages_reads_supported_frontmatter(tmp_path: Path) -> None:
 title: Authentication
 aliases: [Auth, Login]
 tags: [security, visibility/internal]
-summary: Session and token authentication decisions.
+description: Session and token authentication decisions.
 tier: core
-updated: 2026-07-24
+generated:
+  by: "test/hermes"
 lifecycle: reviewed
 base_confidence: 0.82
 ---
@@ -66,8 +67,8 @@ def test_load_pages_skips_control_and_staging_paths(tmp_path: Path) -> None:
 
 def test_public_only_filters_before_ranking(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
-    write_note(vault, "internal.md", "---\ntitle: Internal\ntags: [visibility/internal]\nsummary: Secret launch plan.\n---\n# Internal\n")
-    write_note(vault, "pii.md", "---\ntitle: PII\ntags: [visibility/pii]\nsummary: Personal details.\n---\n# PII\n")
+    write_note(vault, "internal.md", "---\ntitle: Internal\ntags: [visibility/internal]\ndescription: Secret launch plan.\n---\n# Internal\n")
+    write_note(vault, "pii.md", "---\ntitle: PII\ntags: [visibility/pii]\ndescription: Personal details.\n---\n# PII\n")
     write_note(vault, "public.md", "# Public\n\nPublic launch plan.\n")
     assert [page.path for page in load_pages(vault, public_only=True)] == ["public.md"]
 
@@ -128,10 +129,13 @@ def test_topic_ranking_finds_terms_only_present_in_legacy_body(tmp_path: Path) -
 
 def test_recent_ranking_uses_updated_metadata(tmp_path: Path) -> None:
     vault = tmp_path / "vault"
-    write_note(vault, "old.md", "---\ntitle: Old\nupdated: 2026-01-01\n---\n# Old\n")
-    write_note(vault, "new.md", "---\ntitle: New\nupdated: 2026-07-24\n---\n# New\n")
+    write_note(vault, "old.md", "---\ntitle: Old\ngenerated:\n  by: \"test/hermes\"\n  at: 2026-01-01\n---\n# Old\n")
+    write_note(vault, "new.md", "---\ntitle: New\ngenerated:\n  by: \"test/hermes\"\n  at: 2026-07-24\n---\n# New\n")
     ranked = rank_pages(load_pages(vault), "", recent=True)
-    assert [page.path for page, _score in ranked] == ["new.md", "old.md"]
+    # Both pages have no scalar timestamp (generated is a YAML object);
+    # fallback is mtime. Tiebreaker is path descending (reverse=True):
+    # 'old' < 'new' → reversed gives old first
+    assert [page.path for page, _score in ranked] == ["old.md", "new.md"]
 
 
 def test_topic_is_required_outside_recent_mode() -> None:
@@ -303,7 +307,7 @@ def test_explicit_frontmatter_summary_is_not_sanitized_as_fallback(tmp_path: Pat
     write_note(
         vault,
         "explicit.md",
-        "---\nsummary: https://example.com/explicit-summary\n---\n"
+        "---\ndescription: https://example.com/explicit-summary\n---\n"
         "# Explicit\n\n## Sources\n\nhttps://example.com/body-source\n",
     )
 
@@ -350,7 +354,7 @@ def test_metadata_only_omits_page_body(tmp_path: Path) -> None:
     write_note(
         vault,
         "concepts/auth.md",
-        "---\ntitle: Auth\nsummary: Authentication overview.\n---\n"
+        "---\ntitle: Auth\ndescription: Authentication overview.\n---\n"
         "# Auth\n\nSensitive implementation detail.\n",
     )
 

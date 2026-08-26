@@ -32,12 +32,14 @@ def _page(
     lines = [
         "---",
         f"title: {path.stem}",
-        f"category: {path.parts[-2] if len(path.parts) > 1 else 'concepts'}",
+        "type: Concept",
         "tags: [test]",
         "sources:",
         "  - github.com/example/repo@0123456789abcdef0123456789abcdef01234567",
         "created: 2026-07-01",
-        f"updated: {updated}",
+        "generated:",
+        '  by: "test/hermes"',
+        f'  at: {updated}',
         f"base_confidence: {confidence:.2f}",
         "lifecycle: reviewed",
     ]
@@ -50,11 +52,23 @@ def _page(
     return path
 
 
-def _write_ledger(vault: Path) -> Path:
-    ledger = build_trust_ledger(vault, reviewed_at="2026-07-12T17:38:39+07:00")
+def _write_ledger(vault: Path, *, required_trust_keys: tuple[str, ...] | None = None) -> Path:
+    if required_trust_keys is None:
+        required_trust_keys = ("base_confidence", "lifecycle", "generated")
+    ledger = build_trust_ledger(vault, reviewed_at="2026-07-12T17:38:39+07:00", required_trust_keys=required_trust_keys)
     path = vault / "_meta" / "trust-ledger.json"
     write_trust_ledger(path, ledger)
     return path
+
+
+def _check_ledger(
+    vault: Path,
+    ledger_path: Path,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Check ledger with default trust keys matching _page()'s OKF v0.2 format."""
+    kwargs.setdefault("required_trust_keys", ("base_confidence", "lifecycle", "generated"))
+    return check_trust_ledger(vault, ledger_path, **kwargs)
 
 
 def _run_cli(home: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -74,7 +88,7 @@ def test_reviewed_ledger_is_authoritative_instead_of_reclassifying_sources(tmp_p
     _page(vault, "skills/beta.md", confidence=0.80)
     ledger_path = _write_ledger(vault)
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "pass"
     assert report["counts"] == {
@@ -98,10 +112,10 @@ def test_claim_change_invalidates_review_but_updated_timestamp_does_not(tmp_path
     ledger_path = _write_ledger(vault)
 
     page.write_text(page.read_text().replace("updated: 2026-07-12T17:38:39+07:00", "updated: 2026-07-13T09:00:00+07:00"))
-    assert check_trust_ledger(vault, ledger_path)["counts"]["reviewed"] == 1
+    assert _check_ledger(vault, ledger_path)["counts"]["reviewed"] == 1
 
     page.write_text(page.read_text().replace("Reviewed material claim.", "Changed material claim."))
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
     assert report["status"] == "warn"
     assert report["stale"] == [{"page": "concepts/alpha.md", "reason": "material_fingerprint_changed"}]
 
@@ -112,7 +126,7 @@ def test_material_change_marks_review_stale(tmp_path: Path) -> None:
     ledger_path = _write_ledger(vault)
     page.write_text(page.read_text().replace("Reviewed material claim.", "Changed material claim."))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "warn"
     assert report["stale"] == [
@@ -126,7 +140,7 @@ def test_duplicate_confidence_field_fails_instead_of_bypassing_fingerprint(tmp_p
     ledger_path = _write_ledger(vault)
     page.write_text(page.read_text().replace("lifecycle: reviewed", "base_confidence: 0.99\nlifecycle: reviewed"))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
@@ -138,13 +152,13 @@ def test_volatile_field_with_nested_content_fails_closed(tmp_path: Path) -> None
     vault = tmp_path / "vault"
     page = _page(vault, "concepts/alpha.md")
     ledger_path = _write_ledger(vault)
-    page.write_text(page.read_text().replace("updated: 2026-07-12T17:38:39+07:00", "updated: 2026-07-12T17:38:39+07:00\n  hidden: material"))
+    page.write_text(page.read_text().replace('  at: 2026-07-12T17:38:39+07:00', '  at: 2026-07-12T17:38:39+07:00\n  hidden: material'))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
-        {"page": "concepts/alpha.md", "issue": "updated must be a scalar"}
+        {"page": "concepts/alpha.md", "issue": "generated must be an object with at/by keys"}
     ]
 
 
@@ -155,7 +169,7 @@ def test_invalid_confidence_is_checked_before_stale_short_circuit(tmp_path: Path
     changed = page.read_text().replace("Reviewed material claim.", "Changed material claim.")
     page.write_text(changed.replace("base_confidence: 0.80", "base_confidence: nan"))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["stale"] == []
@@ -170,7 +184,7 @@ def test_invalid_lifecycle_fails_closed(tmp_path: Path) -> None:
     ledger_path = _write_ledger(vault)
     page.write_text(page.read_text().replace("lifecycle: reviewed", "lifecycle: totally-invalid"))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
@@ -188,7 +202,7 @@ def test_owner_trust_schema_accepts_lifecycle_and_optional_fields(tmp_path: Path
         vault,
         ledger_path,
         allowed_lifecycles={"active", "confirmed", "stub"},
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
         schema_source="wiki/AGENTS.md",
     )
 
@@ -209,7 +223,7 @@ def test_owner_trust_schema_accepts_lifecycle_and_optional_fields(tmp_path: Path
     assert report["schema"] == {
         "source": "wiki/AGENTS.md",
         "allowed_lifecycles": ["active", "confirmed", "stub"],
-        "required_trust_fields": ["updated"],
+        "required_trust_fields": ["generated"],
     }
 
 
@@ -221,12 +235,12 @@ def test_owner_schema_build_excludes_no_confidence_page_as_not_applicable(tmp_pa
     ledger = build_trust_ledger(
         vault,
         reviewed_at="2026-08-05T12:00:00+09:00",
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
     )
 
     assert ledger["pages"] == {}
     assert ledger["not_applicable"] == ["concepts/alpha.md"]
-    assert page_fingerprint(page, required_trust_keys=("updated",)).startswith("sha256:")
+    assert page_fingerprint(page, required_trust_keys=("generated",)).startswith("sha256:")
 
 
 def test_owner_schema_update_removes_stale_no_confidence_entry(tmp_path: Path) -> None:
@@ -238,7 +252,7 @@ def test_owner_schema_update_removes_stale_no_confidence_entry(tmp_path: Path) -
     before = check_trust_ledger(
         vault,
         ledger_path,
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
     )
     assert before["status"] == "warn"
     assert before["stale"] == [
@@ -253,7 +267,7 @@ def test_owner_schema_update_removes_stale_no_confidence_entry(tmp_path: Path) -
         ledger_path,
         reviewed_at="2026-08-05T13:00:00+09:00",
         page_paths=["concepts/alpha.md"],
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
     )
     assert ledger["pages"] == {}
     assert ledger["not_applicable"] == ["concepts/alpha.md"]
@@ -263,7 +277,7 @@ def test_owner_schema_update_removes_stale_no_confidence_entry(tmp_path: Path) -
     after = check_trust_ledger(
         vault,
         ledger_path,
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
     )
     assert after["status"] == "pass"
     assert after["counts"]["not_applicable"] == 1
@@ -280,7 +294,7 @@ def test_owner_trust_schema_rejects_unknown_lifecycle_typo(tmp_path: Path) -> No
         vault,
         ledger_path,
         allowed_lifecycles={"active", "confirmed", "stub"},
-        required_trust_keys=("updated",),
+        required_trust_keys=("generated",),
         schema_source="wiki/AGENTS.md",
     )
 
@@ -296,7 +310,7 @@ def test_owner_lifecycle_propagates_through_record_update_and_check(tmp_path: Pa
     page.write_text(page.read_text().replace("lifecycle: reviewed", "lifecycle: active"))
     schema = {
         "allowed_lifecycles": {"active", "confirmed", "stub"},
-        "required_trust_keys": ("base_confidence", "lifecycle", "updated"),
+        "required_trust_keys": ("base_confidence", "lifecycle", "generated"),
     }
 
     ledger = build_trust_ledger(
@@ -328,6 +342,12 @@ def test_owner_lifecycle_cli_record_then_check(tmp_path: Path) -> None:
     schema_args = (
         "--allow-lifecycle",
         "active",
+        "--required-trust-field",
+        "base_confidence",
+        "--required-trust-field",
+        "lifecycle",
+        "--required-trust-field",
+        "generated",
         "--schema-source",
         "wiki/AGENTS.md",
     )
@@ -357,7 +377,7 @@ def test_mismatched_scalar_quotes_fail_closed(tmp_path: Path) -> None:
     ledger_path = _write_ledger(vault)
     page.write_text(page.read_text().replace("lifecycle: reviewed", 'lifecycle: "reviewed\''))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
@@ -371,12 +391,12 @@ def test_invalid_updated_timestamp_fails_before_fingerprint_match(tmp_path: Path
     ledger_path = _write_ledger(vault)
     page.write_text(
         page.read_text().replace(
-            "updated: 2026-07-12T17:38:39+07:00",
-            "updated: definitely-not-a-timestamp",
+            "  at: 2026-07-12T17:38:39+07:00",
+            "  at: definitely-not-a-timestamp",
         )
     )
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
@@ -394,7 +414,7 @@ def test_inline_comments_on_scalar_trust_fields_remain_valid(tmp_path: Path) -> 
     )
 
     ledger_path = _write_ledger(vault)
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "pass"
     assert report["counts"]["reviewed"] == 1
@@ -406,7 +426,7 @@ def test_score_only_change_is_a_failing_mismatch_not_stale(tmp_path: Path) -> No
     ledger_path = _write_ledger(vault)
     page.write_text(page.read_text().replace("base_confidence: 0.53", "base_confidence: 0.88"))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["stale"] == []
@@ -421,7 +441,7 @@ def test_new_page_requires_manual_review_instead_of_formula_guess(tmp_path: Path
     ledger_path = _write_ledger(vault)
     _page(vault, "concepts/new.md", confidence=0.95)
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "warn"
     assert report["unreviewed"] == [{"page": "concepts/new.md", "reason": "not_in_manual_ledger"}]
@@ -450,7 +470,7 @@ def test_standalone_trust_check_fails_for_page_missing_trust_fields(tmp_path: Pa
         vault=vault,
     )
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [
@@ -482,7 +502,7 @@ def test_non_object_ledger_fails_cleanly(tmp_path: Path) -> None:
     ledger_path.parent.mkdir(parents=True)
     ledger_path.write_text("[]\n")
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [{"issue": "ledger_must_be_an_object"}]
@@ -495,7 +515,7 @@ def test_duplicate_json_keys_are_rejected(tmp_path: Path) -> None:
     text = ledger_path.read_text()
     ledger_path.write_text(text.replace('"schema_version": 1', '"schema_version": 1, "schema_version": 1'))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"][0]["issue"] == "ledger_unreadable"
@@ -510,7 +530,7 @@ def test_boolean_schema_version_fails_closed(tmp_path: Path) -> None:
     ledger["schema_version"] = True
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"][0]["issue"] == "unsupported_schema_version"
@@ -523,7 +543,7 @@ def test_invalid_utf8_ledger_returns_structured_failure(tmp_path: Path) -> None:
     ledger_path.parent.mkdir(parents=True)
     ledger_path.write_bytes(b"\xff\xfe")
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"][0]["issue"] == "ledger_unreadable"
@@ -559,7 +579,7 @@ def test_invalid_ledger_review_timestamp_fails_closed(tmp_path: Path) -> None:
     ledger["reviewed_at"] = "yesterday"
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [{"issue": "invalid_reviewed_at"}]
@@ -626,7 +646,7 @@ def test_out_of_range_reviewed_confidence_is_invalid_ledger_data(tmp_path: Path)
     ledger["pages"]["concepts/alpha.md"]["reviewed_confidence"] = 2.0
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [{"page": "concepts/alpha.md", "issue": "invalid_ledger_entry"}]
@@ -640,7 +660,7 @@ def test_boolean_reviewed_confidence_is_invalid_ledger_data(tmp_path: Path) -> N
     ledger["pages"]["concepts/alpha.md"]["reviewed_confidence"] = True
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [{"page": "concepts/alpha.md", "issue": "invalid_ledger_entry"}]
@@ -654,7 +674,7 @@ def test_non_standard_json_number_is_unreadable_not_approved(tmp_path: Path) -> 
     ledger["pages"]["concepts/alpha.md"]["reviewed_confidence"] = float("nan")
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"][0]["issue"] == "ledger_unreadable"
@@ -670,7 +690,7 @@ def test_malformed_fingerprint_and_entry_timestamp_fail_closed(tmp_path: Path) -
     entry["reviewed_at"] = "yesterday"
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["errors"] == [{"page": "concepts/alpha.md", "issue": "invalid_ledger_entry"}]
@@ -684,7 +704,7 @@ def test_non_object_page_entry_is_invalid_not_unreviewed(tmp_path: Path) -> None
     ledger["pages"]["concepts/alpha.md"] = []
     ledger_path.write_text(json.dumps(ledger))
 
-    report = check_trust_ledger(vault, ledger_path)
+    report = _check_ledger(vault, ledger_path)
 
     assert report["status"] == "fail"
     assert report["unreviewed"] == []
@@ -945,7 +965,7 @@ def test_owner_schema_cli_excludes_then_removes_no_confidence_ledger_entry(tmp_p
     page = _page(vault, "concepts/alpha.md")
     _write_ledger(vault)
     page.write_text(page.read_text().replace("base_confidence: 0.80\n", ""))
-    schema_args = ("--required-trust-field", "updated")
+    schema_args = ("--required-trust-field", "generated")
 
     stale = _run_cli(home, "trust-check", str(vault), "--json", *schema_args)
     assert stale.returncode == 0, stale.stderr
@@ -1015,7 +1035,7 @@ def test_trust_record_all_human_output_lists_no_confidence_without_removal(tmp_p
         "2026-08-05T14:00:00+09:00",
         "--approved",
         "--required-trust-field",
-        "updated",
+        "generated",
     )
 
     assert record.returncode == 0
@@ -1046,7 +1066,7 @@ def test_trust_record_all_human_output_warns_when_rebuild_removes_stale_entry(
         "2026-08-05T14:00:00+09:00",
         "--approved",
         "--required-trust-field",
-        "updated",
+        "generated",
     )
 
     assert record.returncode == 0
@@ -1079,7 +1099,7 @@ def test_trust_record_page_human_output_warns_when_stale_entry_is_removed(tmp_pa
         "2026-08-05T14:00:00+09:00",
         "--approved",
         "--required-trust-field",
-        "updated",
+        "generated",
     )
 
     assert record.returncode == 0
@@ -1107,7 +1127,7 @@ def test_trust_record_page_human_output_reports_zero_removals_without_warning(
         "2026-08-05T14:00:00+09:00",
         "--approved",
         "--required-trust-field",
-        "updated",
+        "generated",
     )
 
     assert record.returncode == 0
@@ -1131,7 +1151,7 @@ def test_explicit_vault_cli_override_reports_cli_schema_source(tmp_path: Path) -
         "2026-08-05T14:00:00+09:00",
         "--approved",
         "--required-trust-field",
-        "updated",
+        "generated",
         "--json",
     )
 
