@@ -1,13 +1,18 @@
 name: publish
 
-# Build and publish obsidian-wiki to PyPI when a version tag is pushed.
+# Build and publish okf-wiki (OKF v0.2 fork of obsidian-wiki) to PyPI when a
+# version tag is pushed. The package name is `okf-wiki` (separate from upstream
+# `obsidian-wiki` on PyPI), entry points include both `okf-wiki` and
+# `obsidian-wiki` for backwards compatibility.
 #
 # Setup (one-time): on PyPI, add a Trusted Publisher for this repo with
 # workflow `publish.yml` and environment `pypi`. No API token needed — the
 # `id-token: write` permission below mints a short-lived OIDC credential.
 #
-# Release: bump `version` in pyproject.toml, commit, then
-#   git tag v0.1.0 && git push origin v0.1.0
+# Release: tag a commit on main, then push the tag:
+#   git tag v2026.5.2
+#   git push --tags
+# hatch-vcs derives the package version from the tag.
 
 on:
   push:

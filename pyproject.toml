@@ -3,18 +3,20 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "obsidian-wiki"
+name = "okf-wiki"
 dynamic = ["version"]
-description = "A skill-based framework for building and maintaining an AI-maintained Obsidian knowledge base (Karpathy's LLM Wiki pattern) across any AI coding agent."
+description = "OKF v0.2 compliant fork of obsidian-wiki — skill-based framework for building and maintaining an AI-maintained Obsidian knowledge base (Karpathy's LLM Wiki pattern) across any AI coding agent. Pages use native OKF frontmatter (type, title, description, tags, generated)."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Ar9av" }]
+authors = [{ name = "bryce402", email = "bryce402.jang@gmail.com" }]
 keywords = [
   "obsidian",
   "wiki",
   "knowledge-base",
+  "okf",
+  "open-knowledge-format",
   "llm",
   "claude",
   "agent-skills",
@@ -42,12 +44,13 @@ graph = ["leidenalg>=0.10", "igraph>=0.11"]
 server = ["fastapi>=0.115", "uvicorn[standard]>=0.30", "mcp>=2.0"]
 
 [project.urls]
-Homepage = "https://github.com/Ar9av/obsidian-wiki"
-Repository = "https://github.com/Ar9av/obsidian-wiki"
-Issues = "https://github.com/Ar9av/obsidian-wiki/issues"
+Homepage = "https://github.com/bryce402/okf-wiki"
+Repository = "https://github.com/bryce402/okf-wiki"
+Issues = "https://github.com/bryce402/okf-wiki/issues"
 
 [project.scripts]
 obsidian-wiki = "obsidian_wiki.cli:main"
+okf-wiki = "obsidian_wiki.cli:main"
 
 # Version is derived from the git tag (CalVer, e.g. v2026.05.2 -> 2026.5.2),
 # matching the repo's release tags. Tagging a release is the version bump.
